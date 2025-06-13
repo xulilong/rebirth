@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重生之MT大冒险</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 0 auto;
+            background-color: #333;
+            border: 3px solid #555;
+            overflow: hidden;
+        }
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #player::before {
+            content: '🧙‍♂️';
+            font-size: 35px;
+            animation: fly 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes fly {
+            0% { transform: translateY(0px) rotate(-2deg); }
+            100% { transform: translateY(-8px) rotate(2deg); }
+        }
+        #door {
+            position: absolute;
+            width: 60px;
+            height: 100px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 50%, #000 100%);
+            border: 5px solid #8B4513;
+            border-radius: 10px 10px 0 0;
+            right: 20px;
+            bottom: 0;
+            z-index: 5;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        #door::before {
+            content: '🚪';
+            position: absolute;
+            font-size: 40px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+        }
+        
+        #door::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            right: 8px;
+            top: 45%;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+        .trap {
+            position: absolute;
+            background-color: #8B4513;
+            border: 2px solid #654321;
+            z-index: 2;
+        }
+        .level-info {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        #progress-info {
+            font-size: 18px;
+            color: #FFD700;
+            font-weight: normal;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        /* 关卡选择器样式 */
+        #level-select {
+            background-color: rgba(0,0,0,0.9);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        #level-select.hidden {
+            display: none !important;
+        }
+        
+        #level-buttons {
+            display: grid;
+            grid-template-columns: repeat(10, 60px);
+            gap: 10px;
+            margin: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .level-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .level-btn.unlocked {
+            background-color: #4CAF50;
+            border: 2px solid #45a049;
+        }
+        
+        .level-btn.current {
+            background-color: #FFD700;
+            color: #333;
+            border: 2px solid #FFA500;
+        }
+        
+        .level-btn.locked {
+            background-color: #666;
+            color: #999;
+            cursor: not-allowed;
+            border: 2px solid #555;
+        }
+        
+        #close-select-btn {
+            background-color: #f44336;
+            margin-top: 20px;
+        }
+        
+        #close-select-btn:hover {
+            background-color: #da190b;
+        }
+        
+        #reset-progress-btn {
+            background-color: #ff9800;
+        }
+        
+        #reset-progress-btn:hover {
+            background-color: #e68900;
+        }
+        
+        /* 音乐控制按钮样式 */
+        #music-toggle-btn {
+            background-color: #9C27B0;
+        }
+        
+        #music-toggle-btn:hover {
+            background-color: #7B1FA2;
+        }
+        
+
+        
+
+        #message {
+            font-size: 24px;
+            height: 30px;
+            margin: 10px 0;
+            color: #FFD700;
+        }
+        .hidden {
+            display: none;
+        }
+        .spike {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid #696969;
+            bottom: 0;
+        }
+        .moving-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #FF6347;
+            border: 2px solid #DC143C;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        
+        /* 新的陷阱类型样式 */
+        .invisible-trap {
+            position: absolute;
+            background-color: rgba(128, 128, 128, 0.1);
+            border: 2px dashed rgba(128, 128, 128, 0.3);
+            z-index: 2;
+            transition: opacity 0.3s ease;
+        }
+        
+        .invisible-trap.revealed {
+            background-color: rgba(105, 105, 105, 0.8);
+            border: 2px solid #696969;
+        }
+        
+        .teleport-trap {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #9C27B0, #673AB7);
+            border-radius: 50%;
+            z-index: 2;
+            animation: teleportPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes teleportPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        .hunter-trap {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background-color: #FF4500;
+            border-radius: 50%;
+            z-index: 2;
+            border: 3px solid #FF6347;
+            animation: hunterGlow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes hunterGlow {
+            0% { box-shadow: 0 0 5px #FF4500; }
+            100% { box-shadow: 0 0 15px #FF4500, 0 0 25px #FF4500; }
+        }
+        
+        .blink-trap {
+            position: absolute;
+            background-color: #00BCD4;
+            z-index: 2;
+            animation: blinkTrap 3s ease-in-out infinite;
+        }
+        
+        @keyframes blinkTrap {
+            0%, 40% { opacity: 1; }
+            50%, 90% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        .gravity-trap {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(0,0,0,0.8), rgba(0,0,0,0.3));
+            border: 3px solid #333;
+            border-radius: 50%;
+            z-index: 2;
+            animation: gravityPull 2s ease-in-out infinite;
+        }
+        
+        @keyframes gravityPull {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .split-trap {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background-color: #32CD32;
+            border: 2px solid #228B22;
+            z-index: 2;
+            border-radius: 10px;
+            transform: rotate(45deg);
+        }
+        
+        .mirror-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #C0C0C0, #808080);
+            border-radius: 50%;
+            z-index: 2;
+            border: 2px solid #999;
+            animation: mirrorShine 2s linear infinite;
+        }
+        
+        @keyframes mirrorShine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .freeze-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #00E5FF, #0277BD);
+            border-radius: 50%;
+            z-index: 2;
+            animation: freezeEffect 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes freezeEffect {
+            0%, 100% { transform: scale(1); filter: hue-rotate(0deg); }
+            50% { transform: scale(0.9); filter: hue-rotate(90deg); }
+        }
+        
+        .bounce-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #FF1493, #FF69B4);
+            border-radius: 50%;
+            z-index: 2;
+            animation: bounceEffect 1s ease-in-out infinite;
+        }
+        
+        @keyframes bounceEffect {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .shrink-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            z-index: 2;
+            animation: shrinkEffect 2s ease-in-out infinite;
+        }
+        
+        @keyframes shrinkEffect {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.5); }
+        }
+        
+        .speed-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #00FF00, #32CD32);
+            border-radius: 50%;
+            z-index: 2;
+            animation: speedEffect 0.5s linear infinite;
+        }
+        
+        @keyframes speedEffect {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.1); }
+        }
+        
+        .clone-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #8A2BE2, #9370DB);
+            border-radius: 50%;
+            z-index: 2;
+            animation: cloneEffect 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes cloneEffect {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* 爆炸特效 */
+        .explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            z-index: 15;
+            pointer-events: none;
+        }
+        
+        .explosion::before {
+            content: '💥';
+            font-size: 80px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: explode 0.8s ease-out;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        /* 过关特效 */
+        .level-complete {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            z-index: 15;
+            pointer-events: none;
+        }
+        
+        .level-complete::before {
+            content: '✨';
+            font-size: 60px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: sparkle 1s ease-out;
+        }
+        
+        @keyframes sparkle {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>重生之MT大冒险</h1>
+    <div class="level-info">
+        第 <span id="level">1</span> 关 
+        <span id="progress-info">(最高记录: 第 <span id="max-level">1</span> 关)</span>
+    </div>
+    <div id="message"></div>
+    <div id="game-container">
+        <div id="player"></div>
+        <div id="door"></div>
+        <!-- 陷阱将由JS动态生成 -->
+    </div>
+    <div class="controls">
+        <button id="restart-btn">重新开始当前关</button>
+        <button id="next-btn" class="hidden">下一关</button>
+        <button id="level-select-btn">选择关卡</button>
+        <button id="sound-toggle-btn">🔊 音效</button>
+        <button id="music-toggle-btn">🎵 音乐</button>
+        <button id="reset-progress-btn">重置进度</button>
+    </div>
+    <div id="level-select" class="hidden">
+        <h3>选择关卡 (已解锁: 第1-<span id="unlocked-levels">1</span>关)</h3>
+        <div id="level-buttons"></div>
+        <button id="close-select-btn">关闭</button>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            currentLevel: 1,
+            maxLevel: 100,
+            maxUnlockedLevel: 1, // 最高解锁关卡
+            player: { x: 50, y: 250 },
+            isMoving: false,
+            gameOver: false,
+            traps: [],
+            movingTraps: [],
+            specialTraps: [], // 特殊陷阱数组
+            playerFrozen: false, // 玩家是否被冰冻
+            freezeEndTime: 0, // 冰冻结束时间
+            levelLayouts: {} // 存储每关的陷阱布局
+        };
+
+        // 本地存储相关函数
+        function saveProgress() {
+            try {
+                localStorage.setItem('wizardGame_maxLevel', gameState.maxUnlockedLevel);
+                localStorage.setItem('wizardGame_currentLevel', gameState.currentLevel);
+            } catch (e) {
+                console.log('无法保存进度:', e);
+            }
+        }
+
+        function loadProgress() {
+            try {
+                const savedMaxLevel = localStorage.getItem('wizardGame_maxLevel');
+                const savedCurrentLevel = localStorage.getItem('wizardGame_currentLevel');
+                
+                if (savedMaxLevel) {
+                    gameState.maxUnlockedLevel = parseInt(savedMaxLevel);
+                }
+                if (savedCurrentLevel) {
+                    gameState.currentLevel = Math.min(parseInt(savedCurrentLevel), gameState.maxUnlockedLevel);
+                }
+            } catch (e) {
+                console.log('无法加载进度:', e);
+            }
+        }
+
+        function resetProgress() {
+            try {
+                localStorage.removeItem('wizardGame_maxLevel');
+                localStorage.removeItem('wizardGame_currentLevel');
+                gameState.maxUnlockedLevel = 1;
+                gameState.currentLevel = 1;
+            } catch (e) {
+                console.log('无法重置进度:', e);
+            }
+        }
+
+        // DOM元素
+        const levelDisplay = document.getElementById('level');
+        const maxLevelDisplay = document.getElementById('max-level');
+        const unlockedLevelsDisplay = document.getElementById('unlocked-levels');
+        const messageDisplay = document.getElementById('message');
+        const gameContainer = document.getElementById('game-container');
+        const player = document.getElementById('player');
+        const door = document.getElementById('door');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const levelSelectBtn = document.getElementById('level-select-btn');
+        const soundToggleBtn = document.getElementById('sound-toggle-btn');
+        const musicToggleBtn = document.getElementById('music-toggle-btn');
+        const resetProgressBtn = document.getElementById('reset-progress-btn');
+        const levelSelectModal = document.getElementById('level-select');
+        const levelButtonsContainer = document.getElementById('level-buttons');
+        const closeSelectBtn = document.getElementById('close-select-btn');
+
+        // 游戏变量
+        let gameWidth = 800;
+        let gameHeight = 500;
+        let doorRect = door.getBoundingClientRect();
+        let basePlayerSpeed = 8;
+        let playerSpeed = 8;
+        let animationFrame;
+        let trapInterval;
+        
+        // 音效系统
+        let audioContext;
+        let soundEnabled = true;
+        
+        // 背景音乐系统
+        let backgroundMusic;
+        let musicEnabled = true;
+        let musicVolume = 0.1; // 背景音乐音量（10%）
+
+        // 初始化音频上下文
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                // 从本地存储加载音效设置
+                const savedSoundSetting = localStorage.getItem('wizardGame_soundEnabled');
+                if (savedSoundSetting !== null) {
+                    soundEnabled = savedSoundSetting === 'true';
+                }
+                updateSoundButton();
+                
+                // 初始化背景音乐
+                initBackgroundMusic();
+            } catch (e) {
+                console.log('音频不支持:', e);
+                soundEnabled = false;
+                updateSoundButton();
+            }
+        }
+
+        // 初始化背景音乐
+        function initBackgroundMusic() {
+            try {
+                // 尝试多种可能的文件名
+                const possiblePaths = [
+                    'background_music.wav',
+                    'backgroud_music.wav', // 用户提到的原始名称（可能有拼写错误）
+                    './background_music.wav',
+                    './backgroud_music.wav'
+                ];
+                
+                backgroundMusic = new Audio();
+                backgroundMusic.loop = true; // 循环播放
+                backgroundMusic.volume = musicVolume;
+                
+                // 从本地存储加载音乐设置
+                const savedMusicSetting = localStorage.getItem('wizardGame_musicEnabled');
+                const savedMusicVolume = localStorage.getItem('wizardGame_musicVolume');
+                
+                if (savedMusicSetting !== null) {
+                    musicEnabled = savedMusicSetting === 'true';
+                }
+                // 固定音量为10%，不从本地存储读取
+                musicVolume = 0.1;
+                backgroundMusic.volume = musicVolume;
+                
+                // 添加音频事件监听器
+                backgroundMusic.addEventListener('loadstart', () => {
+                    console.log('开始加载背景音乐...');
+                });
+                
+                backgroundMusic.addEventListener('canplaythrough', () => {
+                    console.log('背景音乐加载完成，可以播放');
+                    updateMusicButton();
+                    if (musicEnabled && !firstInteraction) {
+                        playBackgroundMusic();
+                    }
+                });
+                
+                backgroundMusic.addEventListener('error', (e) => {
+                    console.log('背景音乐加载失败:', e);
+                    console.log('当前尝试的文件路径:', backgroundMusic.src);
+                    // 尝试下一个文件路径
+                    tryNextMusicPath();
+                });
+                
+                backgroundMusic.addEventListener('play', () => {
+                    console.log('背景音乐开始播放');
+                });
+                
+                backgroundMusic.addEventListener('pause', () => {
+                    console.log('背景音乐暂停');
+                });
+                
+                // 开始尝试加载第一个路径
+                let currentPathIndex = 0;
+                
+                function tryNextMusicPath() {
+                    if (currentPathIndex < possiblePaths.length) {
+                        const path = possiblePaths[currentPathIndex];
+                        console.log('尝试加载音乐文件:', path);
+                        backgroundMusic.src = path;
+                        backgroundMusic.load();
+                        currentPathIndex++;
+                    } else {
+                        console.log('所有音乐文件路径都尝试失败');
+                        musicEnabled = false;
+                        updateMusicButton();
+
+                    }
+                }
+                
+                // 开始尝试第一个路径
+                tryNextMusicPath();
+                
+                updateMusicButton();
+                
+            } catch (e) {
+                console.log('背景音乐初始化失败:', e);
+                musicEnabled = false;
+                updateMusicButton();
+            }
+        }
+
+        // 播放背景音乐
+        function playBackgroundMusic() {
+            if (backgroundMusic && musicEnabled) {
+                console.log('尝试播放背景音乐, 音量:', backgroundMusic.volume);
+                console.log('音乐文件状态:', {
+                    src: backgroundMusic.src,
+                    readyState: backgroundMusic.readyState,
+                    paused: backgroundMusic.paused,
+                    currentTime: backgroundMusic.currentTime,
+                    duration: backgroundMusic.duration
+                });
+                
+                backgroundMusic.play().then(() => {
+                    console.log('背景音乐播放成功');
+                }).catch(e => {
+                    console.log('背景音乐播放失败:', e);
+                    if (e.name === 'NotAllowedError') {
+                        console.log('浏览器阻止了自动播放，需要用户交互');
+
+                    }
+                });
+            } else {
+                console.log('播放条件不满足:', {
+                    hasBackgroundMusic: !!backgroundMusic,
+                    musicEnabled: musicEnabled
+                });
+            }
+        }
+
+        // 暂停背景音乐
+        function pauseBackgroundMusic() {
+            if (backgroundMusic) {
+                backgroundMusic.pause();
+            }
+        }
+
+        // 切换背景音乐开关
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            localStorage.setItem('wizardGame_musicEnabled', musicEnabled);
+            
+            if (musicEnabled) {
+                console.log('用户手动启用背景音乐');
+                playBackgroundMusic();
+            } else {
+                console.log('用户手动禁用背景音乐');
+                pauseBackgroundMusic();
+            }
+            
+            updateMusicButton();
+        }
+
+
+
+        // 切换音效开关
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('wizardGame_soundEnabled', soundEnabled);
+            updateSoundButton();
+            
+            // 播放测试音效
+            if (soundEnabled) {
+                playClickSound();
+            }
+        }
+
+        // 更新音效按钮显示
+        function updateSoundButton() {
+            if (soundToggleBtn) {
+                soundToggleBtn.textContent = soundEnabled ? '🔊 音效' : '🔇 音效';
+                soundToggleBtn.style.opacity = soundEnabled ? '1' : '0.6';
+            }
+        }
+
+        // 更新背景音乐按钮显示
+        function updateMusicButton() {
+            if (musicToggleBtn) {
+                musicToggleBtn.textContent = musicEnabled ? '🎵 音乐' : '🔇 音乐';
+                musicToggleBtn.style.opacity = musicEnabled ? '1' : '0.6';
+            }
+        }
+
+
+
+        // 生成爆炸音效
+        function playExplosionSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 爆炸音效：低频噪音
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // 生成过关音效
+        function playSuccessSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            // 播放一系列上升的音符
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            
+            notes.forEach((frequency, index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.15);
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime + index * 0.15);
+                gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + index * 0.15 + 0.05);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + index * 0.15 + 0.3);
+                
+                oscillator.start(audioContext.currentTime + index * 0.15);
+                oscillator.stop(audioContext.currentTime + index * 0.15 + 0.3);
+            });
+        }
+
+        // 生成按键音效
+        function playClickSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+        
+        // 键盘状态追踪
+        const keys = {
+            ArrowUp: false,
+            ArrowDown: false,
+            ArrowLeft: false,
+            ArrowRight: false
+        };
+
+        // 更新进度显示
+        function updateProgressDisplay() {
+            maxLevelDisplay.textContent = gameState.maxUnlockedLevel;
+            unlockedLevelsDisplay.textContent = gameState.maxUnlockedLevel;
+        }
+
+        // 创建关卡选择按钮
+        function createLevelButtons() {
+            levelButtonsContainer.innerHTML = '';
+            
+            for (let i = 1; i <= gameState.maxLevel; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = 'level-btn';
+                
+                if (i <= gameState.maxUnlockedLevel) {
+                    if (i === gameState.currentLevel) {
+                        btn.className += ' current';
+                    } else {
+                        btn.className += ' unlocked';
+                    }
+                    btn.onclick = () => selectLevel(i);
+                } else {
+                    btn.className += ' locked';
+                    btn.disabled = true;
+                }
+                
+                levelButtonsContainer.appendChild(btn);
+            }
+        }
+
+        // 选择关卡
+        function selectLevel(level) {
+            if (level <= gameState.maxUnlockedLevel) {
+                playClickSound();
+                gameState.currentLevel = level;
+                saveProgress();
+                levelSelectModal.classList.add('hidden');
+                startLevel();
+            }
+        }
+
+        // 开始关卡
+        function startLevel() {
+            gameState.gameOver = false;
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            
+            messageDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            
+            // 清除之前的陷阱
+            document.querySelectorAll('.trap, .spike, .moving-trap').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            setupLevel();
+            updateProgressDisplay();
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 初始化音频系统
+            initAudio();
+            
+            // 加载保存的进度
+            loadProgress();
+            
+            gameState.gameOver = false;
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            
+            messageDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            
+            // 确保关卡选择器是隐藏的
+            levelSelectModal.classList.add('hidden');
+            
+            updatePlayerPosition();
+            setupLevel();
+            updateProgressDisplay();
+            
+            // 清除之前的陷阱
+            document.querySelectorAll('.trap, .spike, .moving-trap').forEach(el => el.remove());
+        }
+
+        // 设置当前关卡
+        function setupLevel() {
+            levelDisplay.textContent = gameState.currentLevel;
+            
+            // 根据关卡调整玩家移动速度（高关卡稍微快一点以应对更多陷阱）
+            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 20);
+            
+            // 根据关卡设置陷阱（生成新布局）
+            createTraps(false);
+            
+            // 设置移动陷阱（生成新布局）
+            setupMovingTraps(false);
+        }
+
+        // 生成关卡布局种子
+        function generateLevelSeed(level) {
+            return level * 12345; // 使用关卡数生成固定种子
+        }
+        
+        // 基于种子的随机数生成器
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        // 创建特殊陷阱
+        function createSpecialTrap(trap, seed, seedCounter, sizeMultiplier) {
+            const specialTypes = ['invisible', 'teleport', 'hunter', 'blink', 'gravity', 'split', 'mirror', 'freeze', 'bounce', 'shrink', 'speed', 'clone'];
+            const typeIndex = Math.floor(seededRandom(seed + seedCounter++) * specialTypes.length);
+            const trapType = specialTypes[typeIndex];
+            
+            const baseSize = 40;
+            const width = baseSize * sizeMultiplier;
+            const height = baseSize * sizeMultiplier;
+            const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - width);
+            const bottom = seededRandom(seed + seedCounter++) * (gameHeight - height - 50);
+            
+            switch(trapType) {
+                case 'invisible':
+                    trap.className = 'invisible-trap';
+                    trap.dataset.trapType = 'invisible';
+                    trap.dataset.revealed = 'false';
+                    break;
+                case 'teleport':
+                    trap.className = 'teleport-trap';
+                    trap.dataset.trapType = 'teleport';
+                    break;
+                case 'hunter':
+                    trap.className = 'hunter-trap';
+                    trap.dataset.trapType = 'hunter';
+                    trap.dataset.huntSpeed = '2';
+                    break;
+                case 'blink':
+                    trap.className = 'blink-trap';
+                    trap.dataset.trapType = 'blink';
+                    trap.dataset.visible = 'true';
+                    break;
+                case 'gravity':
+                    trap.className = 'gravity-trap';
+                    trap.dataset.trapType = 'gravity';
+                    trap.dataset.pullForce = '3';
+                    break;
+                case 'split':
+                    trap.className = 'split-trap';
+                    trap.dataset.trapType = 'split';
+                    trap.dataset.hasTriggered = 'false';
+                    break;
+                case 'mirror':
+                    trap.className = 'mirror-trap';
+                    trap.dataset.trapType = 'mirror';
+                    break;
+                case 'freeze':
+                    trap.className = 'freeze-trap';
+                    trap.dataset.trapType = 'freeze';
+                    break;
+                case 'bounce':
+                    trap.className = 'bounce-trap';
+                    trap.dataset.trapType = 'bounce';
+                    break;
+                case 'shrink':
+                    trap.className = 'shrink-trap';
+                    trap.dataset.trapType = 'shrink';
+                    break;
+                case 'speed':
+                    trap.className = 'speed-trap';
+                    trap.dataset.trapType = 'speed';
+                    break;
+                case 'clone':
+                    trap.className = 'clone-trap';
+                    trap.dataset.trapType = 'clone';
+                    trap.dataset.hasTriggered = 'false';
+                    break;
+            }
+            
+            trap.style.width = width + 'px';
+            trap.style.height = height + 'px';
+            trap.style.left = left + 'px';
+            trap.style.bottom = bottom + 'px';
+            
+            // 保存特殊陷阱信息
+            gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                className: trap.className,
+                trapType: trapType,
+                width: width,
+                height: height,
+                left: left,
+                bottom: bottom,
+                data: {...trap.dataset}
+            });
+            
+            return seedCounter;
+        }
+        
+        // 创建静态陷阱
+        function createTraps(useExistingLayout = false) {
+            // 第一关没有任何陷阱
+            if (gameState.currentLevel === 1) {
+                return;
+            }
+            
+            // 如果要重用现有布局
+            if (useExistingLayout && gameState.levelLayouts[gameState.currentLevel]) {
+                const layout = gameState.levelLayouts[gameState.currentLevel];
+                
+                // 重建静态陷阱
+                for (const trapData of layout.staticTraps) {
+                    const trap = document.createElement('div');
+                    trap.className = trapData.className;
+                    
+                    if (trapData.trapType) {
+                        // 重建特殊陷阱
+                        trap.dataset.trapType = trapData.trapType;
+                        if (trapData.data) {
+                            Object.assign(trap.dataset, trapData.data);
+                        }
+                        trap.style.width = trapData.width + 'px';
+                        trap.style.height = trapData.height + 'px';
+                        trap.style.left = trapData.left + 'px';
+                        trap.style.bottom = trapData.bottom + 'px';
+                    } else if (trapData.className === 'trap') {
+                        trap.style.width = trapData.width + 'px';
+                        trap.style.height = trapData.height + 'px';
+                        trap.style.left = trapData.left + 'px';
+                        trap.style.bottom = trapData.bottom + 'px';
+                    } else {
+                        trap.style.left = trapData.left + 'px';
+                    }
+                    
+                    gameContainer.appendChild(trap);
+                    gameState.traps.push(trap);
+                }
+                return;
+            }
+            
+            // 生成新的布局
+            const seed = generateLevelSeed(gameState.currentLevel);
+            let seedCounter = 0;
+            
+            // 根据关卡数量递增难度
+            let trapCount;
+            if (gameState.currentLevel <= 10) {
+                trapCount = gameState.currentLevel * 2; // 第2关开始，2,4,6,8...个陷阱
+            } else if (gameState.currentLevel <= 30) {
+                trapCount = 20 + (gameState.currentLevel - 10) * 3; // 第11关起，每关增加3个
+            } else if (gameState.currentLevel <= 60) {
+                trapCount = 80 + (gameState.currentLevel - 30) * 2; // 第31关起，每关增加2个
+            } else {
+                trapCount = 140 + (gameState.currentLevel - 60); // 第61关起，每关增加1个
+            }
+            
+            // 初始化关卡布局存储
+            if (!gameState.levelLayouts[gameState.currentLevel]) {
+                gameState.levelLayouts[gameState.currentLevel] = {
+                    staticTraps: [],
+                    movingTraps: []
+                };
+            }
+            
+            for (let i = 0; i < trapCount; i++) {
+                const trap = document.createElement('div');
+                
+                // 重新调整陷阱类型比例，让游戏更有趣
+                const specialChance = Math.min(0.15 + gameState.currentLevel * 0.008, 0.5); // 特殊陷阱比例大幅提升
+                const spikeChance = Math.min(0.3 + gameState.currentLevel * 0.01, 0.7); // 尖刺比例
+                const trapChance = 0.2; // 方块陷阱比例固定为20%，大幅减少
+                const randomValue = seededRandom(seed + seedCounter++);
+                
+                // 高关卡的陷阱更大
+                const sizeMultiplier = 1 + gameState.currentLevel * 0.005;
+                
+                if (randomValue < specialChance && gameState.currentLevel >= 3) {
+                    // 创建特殊陷阱（从第3关开始，更早出现）
+                    seedCounter = createSpecialTrap(trap, seed, seedCounter, sizeMultiplier);
+                } else if (randomValue < specialChance + spikeChance) {
+                    // 尖刺陷阱（优先级提高）
+                    trap.className = 'spike';
+                    const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - 30);
+                    trap.style.left = left + 'px';
+                    
+                    // 保存布局信息
+                    gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                        className: 'spike',
+                        left: left
+                    });
+                } else if (randomValue < specialChance + spikeChance + trapChance) {
+                    // 矩形陷阱
+                    trap.className = 'trap';
+                    const width = (30 + seededRandom(seed + seedCounter++) * 70) * sizeMultiplier;
+                    const height = (20 + seededRandom(seed + seedCounter++) * 50) * sizeMultiplier;
+                    const finalWidth = Math.min(width, 120);
+                    const finalHeight = Math.min(height, 80);
+                    const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - finalWidth);
+                    const bottom = seededRandom(seed + seedCounter++) * (gameHeight - finalHeight - 50);
+                    
+                    trap.style.width = finalWidth + 'px';
+                    trap.style.height = finalHeight + 'px';
+                    trap.style.left = left + 'px';
+                    trap.style.bottom = bottom + 'px';
+                    
+                    // 保存布局信息
+                    gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                        className: 'trap',
+                        width: finalWidth,
+                        height: finalHeight,
+                        left: left,
+                        bottom: bottom
+                    });
+                } else {
+                    // 如果都不满足，创建一个尖刺陷阱作为默认
+                    trap.className = 'spike';
+                    const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - 30);
+                    trap.style.left = left + 'px';
+                    
+                    // 保存布局信息
+                    gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                        className: 'spike',
+                        left: left
+                    });
+                }
+                
+                gameContainer.appendChild(trap);
+                gameState.traps.push(trap);
+            }
+        }
+
+        // 设置移动陷阱
+        function setupMovingTraps(useExistingLayout = false) {
+            // 第1-3关没有移动陷阱
+            if (gameState.currentLevel <= 3) {
+                return;
+            }
+            
+            // 如果要重用现有布局
+            if (useExistingLayout && gameState.levelLayouts[gameState.currentLevel]) {
+                const layout = gameState.levelLayouts[gameState.currentLevel];
+                
+                // 重建移动陷阱
+                for (const trapData of layout.movingTraps) {
+                    const movingTrap = document.createElement('div');
+                    movingTrap.className = 'moving-trap';
+                    
+                    movingTrap.style.left = trapData.startX + 'px';
+                    movingTrap.style.top = trapData.startY + 'px';
+                    
+                    gameContainer.appendChild(movingTrap);
+                    gameState.movingTraps.push({
+                        element: movingTrap,
+                        x: trapData.startX,
+                        y: trapData.startY,
+                        speedX: trapData.speedX,
+                        speedY: trapData.speedY
+                    });
+                }
+                
+                // 开始移动陷阱
+                if (trapInterval) clearInterval(trapInterval);
+                const updateInterval = Math.max(15, 35 - gameState.currentLevel * 0.2);
+                trapInterval = setInterval(moveTraps, updateInterval);
+                return;
+            }
+            
+            // 生成新的移动陷阱布局
+            const seed = generateLevelSeed(gameState.currentLevel);
+            let seedCounter = 1000; // 使用不同的起始值避免与静态陷阱冲突
+            
+            // 根据关卡递增移动陷阱数量
+            let movingTrapCount;
+            if (gameState.currentLevel <= 15) {
+                movingTrapCount = Math.floor((gameState.currentLevel - 3) / 3); // 第4关开始，每3关增加1个
+            } else if (gameState.currentLevel <= 50) {
+                movingTrapCount = 4 + Math.floor((gameState.currentLevel - 15) / 5); // 第16关起，每5关增加1个
+            } else {
+                movingTrapCount = Math.min(11 + Math.floor((gameState.currentLevel - 50) / 10), 20); // 第51关起，每10关增加1个，最多20个
+            }
+            
+            for (let i = 0; i < movingTrapCount; i++) {
+                const movingTrap = document.createElement('div');
+                movingTrap.className = 'moving-trap';
+                
+                // 使用种子生成固定的初始位置和移动方向
+                const startX = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200);
+                const startY = 50 + seededRandom(seed + seedCounter++) * (gameHeight - 100);
+                
+                // 根据关卡调整移动速度
+                const baseSpeed = 2 + gameState.currentLevel * 0.05; // 速度随关卡增加
+                const maxSpeed = Math.min(baseSpeed, 8); // 限制最大速度
+                const speedX = (seededRandom(seed + seedCounter++) - 0.5) * maxSpeed;
+                const speedY = (seededRandom(seed + seedCounter++) - 0.5) * maxSpeed;
+                
+                movingTrap.style.left = startX + 'px';
+                movingTrap.style.top = startY + 'px';
+                
+                gameContainer.appendChild(movingTrap);
+                gameState.movingTraps.push({
+                    element: movingTrap,
+                    x: startX,
+                    y: startY,
+                    speedX: speedX,
+                    speedY: speedY
+                });
+                
+                // 保存移动陷阱布局信息
+                gameState.levelLayouts[gameState.currentLevel].movingTraps.push({
+                    startX: startX,
+                    startY: startY,
+                    speedX: speedX,
+                    speedY: speedY
+                });
+            }
+            
+            // 开始移动陷阱，高关卡更新频率更高
+            if (trapInterval) clearInterval(trapInterval);
+            const updateInterval = Math.max(15, 35 - gameState.currentLevel * 0.2); // 更新间隔随关卡减少
+            trapInterval = setInterval(moveTraps, updateInterval);
+        }
+
+        // 移动陷阱
+        function moveTraps() {
+            gameState.movingTraps.forEach(trap => {
+                trap.x += trap.speedX;
+                trap.y += trap.speedY;
+                
+                // 边界检测
+                if (trap.x <= 0 || trap.x >= gameWidth - 40) {
+                    trap.speedX *= -1;
+                }
+                if (trap.y <= 0 || trap.y >= gameHeight - 40) {
+                    trap.speedY *= -1;
+                }
+                
+                trap.element.style.left = trap.x + 'px';
+                trap.element.style.top = trap.y + 'px';
+            });
+        }
+
+        // 更新玩家位置
+        function updatePlayerPosition() {
+            player.style.left = gameState.player.x + 'px';
+            player.style.top = gameState.player.y + 'px';
+        }
+
+        // 处理特殊陷阱
+        function handleSpecialTrap(trap) {
+            const trapType = trap.dataset.trapType;
+            
+            switch(trapType) {
+                case 'teleport':
+                    // 传送陷阱：随机传送玩家
+                    playClickSound(); // 传送音效
+                    gameState.player.x = 50 + Math.random() * (gameWidth - 150);
+                    gameState.player.y = 50 + Math.random() * (gameHeight - 100);
+                    updatePlayerPosition();
+                    messageDisplay.textContent = '💫 传送了！';
+                    setTimeout(() => {
+                        if (messageDisplay.textContent.includes('传送了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 1500);
+                    break;
+                    
+                case 'freeze':
+                    // 冰冻陷阱：冻结玩家3秒
+                    gameState.playerFrozen = true;
+                    gameState.freezeEndTime = Date.now() + 3000;
+                    player.style.filter = 'hue-rotate(240deg) brightness(0.7)';
+                    messageDisplay.textContent = '🧊 被冰冻了！';
+                    setTimeout(() => {
+                        gameState.playerFrozen = false;
+                        player.style.filter = '';
+                        if (messageDisplay.textContent.includes('被冰冻了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 3000);
+                    break;
+                    
+                case 'split':
+                    // 分裂陷阱：分裂成4个小陷阱
+                    if (trap.dataset.hasTriggered === 'false') {
+                        trap.dataset.hasTriggered = 'true';
+                        createSplitTraps(trap);
+                        trap.remove();
+                        gameState.traps = gameState.traps.filter(t => t !== trap);
+                    }
+                    break;
+                    
+                case 'gravity':
+                    // 重力陷阱：把玩家拉向中心然后爆炸
+                    const trapRect = trap.getBoundingClientRect();
+                    const centerX = trapRect.left + trapRect.width / 2 - gameContainer.getBoundingClientRect().left;
+                    const centerY = trapRect.top + trapRect.height / 2 - gameContainer.getBoundingClientRect().top;
+                    gameState.player.x = centerX - 20;
+                    gameState.player.y = centerY - 25;
+                    updatePlayerPosition();
+                    setTimeout(() => gameOver(), 500);
+                    break;
+                    
+                case 'bounce':
+                    // 弹跳陷阱：把玩家弹到随机方向
+                    playClickSound();
+                    const bounceForce = 100;
+                    const angle = Math.random() * 2 * Math.PI;
+                    gameState.player.x += Math.cos(angle) * bounceForce;
+                    gameState.player.y += Math.sin(angle) * bounceForce;
+                    
+                    // 确保玩家不会被弹出边界
+                    gameState.player.x = Math.max(0, Math.min(gameWidth - 40, gameState.player.x));
+                    gameState.player.y = Math.max(0, Math.min(gameHeight - 50, gameState.player.y));
+                    updatePlayerPosition();
+                    
+                    messageDisplay.textContent = '🏀 被弹飞了！';
+                    setTimeout(() => {
+                        if (messageDisplay.textContent.includes('被弹飞了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 1500);
+                    break;
+                    
+                case 'shrink':
+                    // 缩小陷阱：让玩家变小5秒
+                    player.style.transform = 'scale(0.5)';
+                    messageDisplay.textContent = '🔍 变小了！';
+                    setTimeout(() => {
+                        player.style.transform = '';
+                        if (messageDisplay.textContent.includes('变小了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 5000);
+                    break;
+                    
+                case 'speed':
+                    // 加速陷阱：让玩家移动速度翻倍5秒
+                    const originalSpeed = playerSpeed;
+                    playerSpeed *= 2;
+                    player.style.filter = 'hue-rotate(120deg) brightness(1.2)';
+                    messageDisplay.textContent = '⚡ 加速了！';
+                    setTimeout(() => {
+                        playerSpeed = originalSpeed;
+                        player.style.filter = '';
+                        if (messageDisplay.textContent.includes('加速了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 5000);
+                    break;
+                    
+                case 'clone':
+                    // 克隆陷阱：创建玩家的镜像
+                    if (trap.dataset.hasTriggered === 'false') {
+                        trap.dataset.hasTriggered = 'true';
+                        createPlayerClone();
+                        messageDisplay.textContent = '👥 出现了分身！';
+                        setTimeout(() => {
+                            if (messageDisplay.textContent.includes('出现了分身')) {
+                                messageDisplay.textContent = '';
+                            }
+                        }, 2000);
+                    }
+                    break;
+                    
+                default:
+                    // 其他特殊陷阱也会导致游戏结束
+                    gameOver();
+                    break;
+            }
+        }
+
+        // 创建分裂的小陷阱
+        function createSplitTraps(originalTrap) {
+            const rect = originalTrap.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2 - gameContainer.getBoundingClientRect().left;
+            const centerY = rect.top + rect.height / 2 - gameContainer.getBoundingClientRect().top;
+            
+            const directions = [
+                {x: -1, y: -1}, {x: 1, y: -1}, 
+                {x: -1, y: 1}, {x: 1, y: 1}
+            ];
+            
+            directions.forEach((dir, index) => {
+                setTimeout(() => {
+                    const smallTrap = document.createElement('div');
+                    smallTrap.className = 'trap';
+                    smallTrap.style.width = '20px';
+                    smallTrap.style.height = '20px';
+                    smallTrap.style.left = (centerX + dir.x * 30) + 'px';
+                    smallTrap.style.top = (centerY + dir.y * 30) + 'px';
+                    smallTrap.style.position = 'absolute';
+                    
+                    gameContainer.appendChild(smallTrap);
+                    gameState.traps.push(smallTrap);
+                }, index * 100);
+            });
+        }
+
+        // 创建玩家克隆
+        function createPlayerClone() {
+            const clone = document.createElement('div');
+            clone.className = 'player-clone';
+            clone.innerHTML = '🧙‍♂️';
+            clone.style.position = 'absolute';
+            clone.style.width = '40px';
+            clone.style.height = '50px';
+            clone.style.fontSize = '40px';
+            clone.style.display = 'flex';
+            clone.style.alignItems = 'center';
+            clone.style.justifyContent = 'center';
+            clone.style.zIndex = '3';
+            clone.style.opacity = '0.7';
+            clone.style.filter = 'hue-rotate(180deg)';
+            
+            // 克隆出现在玩家附近的随机位置
+            const offsetX = (Math.random() - 0.5) * 200;
+            const offsetY = (Math.random() - 0.5) * 200;
+            clone.style.left = Math.max(0, Math.min(gameWidth - 40, gameState.player.x + offsetX)) + 'px';
+            clone.style.top = Math.max(0, Math.min(gameHeight - 50, gameState.player.y + offsetY)) + 'px';
+            
+            gameContainer.appendChild(clone);
+            
+            // 克隆会跟随玩家移动，但有延迟
+            let cloneX = parseFloat(clone.style.left);
+            let cloneY = parseFloat(clone.style.top);
+            
+            const cloneInterval = setInterval(() => {
+                if (gameState.gameOver) {
+                    clearInterval(cloneInterval);
+                    clone.remove();
+                    return;
+                }
+                
+                // 克隆缓慢跟随玩家
+                const dx = gameState.player.x - cloneX;
+                const dy = gameState.player.y - cloneY;
+                cloneX += dx * 0.1;
+                cloneY += dy * 0.1;
+                
+                clone.style.left = cloneX + 'px';
+                clone.style.top = cloneY + 'px';
+            }, 50);
+            
+            // 10秒后移除克隆
+            setTimeout(() => {
+                clearInterval(cloneInterval);
+                if (clone.parentNode) {
+                    clone.remove();
+                }
+            }, 10000);
+        }
+
+        // 检测碰撞
+        function checkCollisions() {
+            const playerRect = player.getBoundingClientRect();
+            const doorRect = door.getBoundingClientRect();
+            
+            // 检查是否完全进入门内（玩家需要完全在门的范围内）
+            if (playerRect.left >= doorRect.left + 5 && 
+                playerRect.right <= doorRect.right - 5 && 
+                playerRect.bottom >= doorRect.top + 5 && 
+                playerRect.top <= doorRect.bottom - 5) {
+                levelComplete();
+                return;
+            }
+            
+            // 检查与静态陷阱的碰撞
+            for (const trap of gameState.traps) {
+                const trapRect = trap.getBoundingClientRect();
+                if (playerRect.right > trapRect.left && 
+                    playerRect.left < trapRect.right && 
+                    playerRect.bottom > trapRect.top && 
+                    playerRect.top < trapRect.bottom) {
+                    
+                    // 处理特殊陷阱
+                    if (trap.dataset.trapType) {
+                        // 闪烁陷阱在不可见时不会造成伤害
+                        if (trap.dataset.trapType === 'blink' && trap.dataset.visible === 'false') {
+                            continue;
+                        }
+                        handleSpecialTrap(trap);
+                    } else {
+                        gameOver();
+                    }
+                    return;
+                }
+            }
+            
+            // 检查与移动陷阱的碰撞
+            for (const trap of gameState.movingTraps) {
+                const trapRect = trap.element.getBoundingClientRect();
+                if (playerRect.right > trapRect.left && 
+                    playerRect.left < trapRect.right && 
+                    playerRect.bottom > trapRect.top && 
+                    playerRect.top < trapRect.bottom) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // 检查边界
+            if (gameState.player.x < 0 || gameState.player.x > gameWidth - 40 ||
+                gameState.player.y < 0 || gameState.player.y > gameHeight - 50) {
+                gameOver();
+                return;
+            }
+        }
+
+        // 关卡完成
+        function levelComplete() {
+            // 防止重复调用
+            if (gameState.gameOver) return;
+            gameState.gameOver = true;
+            
+            // 播放过关音效
+            playSuccessSound();
+            
+            // 添加过关特效
+            const sparkle = document.createElement('div');
+            sparkle.className = 'level-complete';
+            sparkle.style.left = (gameState.player.x - 30) + 'px';
+            sparkle.style.top = (gameState.player.y - 25) + 'px';
+            gameContainer.appendChild(sparkle);
+            
+            // 移除特效
+            setTimeout(() => {
+                sparkle.remove();
+            }, 1000);
+            
+            // 解锁下一关
+            if (gameState.currentLevel === gameState.maxUnlockedLevel && gameState.currentLevel < gameState.maxLevel) {
+                gameState.maxUnlockedLevel = gameState.currentLevel + 1;
+                saveProgress();
+            }
+            
+            if (gameState.currentLevel === gameState.maxLevel) {
+                messageDisplay.textContent = '🎉 恭喜！你已通关所有100关！你是真正的法师大师！';
+                setTimeout(() => {
+                    messageDisplay.textContent = '选择任意关卡继续挑战...';
+                    updateProgressDisplay();
+                }, 3000);
+            } else {
+                messageDisplay.textContent = `✨ 恭喜通过第 ${gameState.currentLevel} 关！解锁第 ${gameState.currentLevel + 1} 关！`;
+                // 2秒后自动进入下一关
+                setTimeout(() => {
+                    nextLevel();
+                }, 2000);
+            }
+        }
+
+        // 游戏结束
+        function gameOver() {
+            // 防止重复调用
+            if (gameState.gameOver) return;
+            gameState.gameOver = true;
+            
+            // 播放爆炸音效
+            playExplosionSound();
+            
+            // 添加爆炸特效
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = (gameState.player.x - 30) + 'px';
+            explosion.style.top = (gameState.player.y - 25) + 'px';
+            gameContainer.appendChild(explosion);
+            
+            // 隐藏玩家
+            player.style.display = 'none';
+            
+            messageDisplay.textContent = '💥 爆炸了！重新开始当前关卡...';
+            
+            // 移除爆炸特效并重新开始当前关卡
+            setTimeout(() => {
+                explosion.remove();
+                player.style.display = 'flex';
+                restartCurrentLevel();
+            }, 1500);
+        }
+        
+        // 重新开始当前关卡
+        function restartCurrentLevel() {
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.gameOver = false;
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
+            
+            messageDisplay.textContent = '';
+            
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的陷阱（包括特殊陷阱）
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            
+            // 重用现有的关卡布局
+            levelDisplay.textContent = gameState.currentLevel;
+            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 20);
+            createTraps(true); // 使用现有布局
+            setupMovingTraps(true); // 使用现有布局
+        }
+
+        // 下一关
+        function nextLevel() {
+            gameState.currentLevel++;
+            saveProgress(); // 保存当前关卡进度
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.gameOver = false;  // 重置游戏状态
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
+            
+            messageDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的陷阱（包括特殊陷阱）
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            setupLevel();
+            updateProgressDisplay(); // 更新进度显示
+            
+            // 不需要再次调用gameLoop()，因为它已经在运行
+        }
+
+        // 更新玩家移动
+        function updatePlayerMovement() {
+            if (gameState.gameOver || gameState.playerFrozen) return;
+            
+            if (keys.ArrowUp) {
+                gameState.player.y -= playerSpeed;
+            }
+            if (keys.ArrowDown) {
+                gameState.player.y += playerSpeed;
+            }
+            if (keys.ArrowLeft) {
+                gameState.player.x -= playerSpeed;
+            }
+            if (keys.ArrowRight) {
+                gameState.player.x += playerSpeed;
+            }
+            
+            updatePlayerPosition();
+        }
+
+        // 游戏主循环
+        function gameLoop() {
+            updatePlayerMovement();
+            updateSpecialTraps();
+            checkCollisions();
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // 更新特殊陷阱的行为
+        function updateSpecialTraps() {
+            if (gameState.gameOver) return;
+            
+            gameState.traps.forEach(trap => {
+                const trapType = trap.dataset.trapType;
+                if (!trapType) return;
+                
+                const playerRect = player.getBoundingClientRect();
+                const trapRect = trap.getBoundingClientRect();
+                
+                switch(trapType) {
+                    case 'invisible':
+                        // 隐形陷阱：玩家靠近时显现
+                        const distance = Math.sqrt(
+                            Math.pow(playerRect.left - trapRect.left, 2) + 
+                            Math.pow(playerRect.top - trapRect.top, 2)
+                        );
+                        if (distance < 80 && trap.dataset.revealed === 'false') {
+                            trap.dataset.revealed = 'true';
+                            trap.classList.add('revealed');
+                        }
+                        break;
+                        
+                    case 'hunter':
+                        // 追踪陷阱：跟着玩家移动
+                        const speed = parseFloat(trap.dataset.huntSpeed) || 2;
+                        const currentLeft = parseFloat(trap.style.left);
+                        const currentTop = parseFloat(trap.style.top);
+                        
+                        const playerX = gameState.player.x + 20; // 玩家中心点
+                        const playerY = gameState.player.y + 25;
+                        const trapX = currentLeft + 20; // 陷阱中心点
+                        const trapY = currentTop + 20;
+                        
+                        const dx = playerX - trapX;
+                        const dy = playerY - trapY;
+                        const magnitude = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (magnitude > 5) { // 避免抖动
+                            const moveX = (dx / magnitude) * speed;
+                            const moveY = (dy / magnitude) * speed;
+                            
+                            trap.style.left = Math.max(0, Math.min(gameWidth - 40, currentLeft + moveX)) + 'px';
+                            trap.style.top = Math.max(0, Math.min(gameHeight - 40, currentTop + moveY)) + 'px';
+                        }
+                        break;
+                        
+                    case 'mirror':
+                        // 镜像陷阱：与玩家做相反移动
+                        const centerX = gameWidth / 2;
+                        const centerY = gameHeight / 2;
+                        const mirrorX = centerX - (gameState.player.x - centerX);
+                        const mirrorY = centerY - (gameState.player.y - centerY);
+                        
+                        trap.style.left = Math.max(0, Math.min(gameWidth - 40, mirrorX - 20)) + 'px';
+                        trap.style.top = Math.max(0, Math.min(gameHeight - 40, mirrorY - 25)) + 'px';
+                        break;
+                        
+                    case 'gravity':
+                        // 重力陷阱：吸引玩家
+                        const gravityDistance = Math.sqrt(
+                            Math.pow(playerRect.left - trapRect.left, 2) + 
+                            Math.pow(playerRect.top - trapRect.top, 2)
+                        );
+                        
+                        if (gravityDistance < 120) { // 重力范围
+                            const pullForce = parseFloat(trap.dataset.pullForce) || 3;
+                            const trapCenterX = trapRect.left + trapRect.width / 2 - gameContainer.getBoundingClientRect().left;
+                            const trapCenterY = trapRect.top + trapRect.height / 2 - gameContainer.getBoundingClientRect().top;
+                            
+                            const pullX = trapCenterX - (gameState.player.x + 20);
+                            const pullY = trapCenterY - (gameState.player.y + 25);
+                            const pullMagnitude = Math.sqrt(pullX * pullX + pullY * pullY);
+                            
+                            if (pullMagnitude > 0) {
+                                gameState.player.x += (pullX / pullMagnitude) * pullForce * 0.3;
+                                gameState.player.y += (pullY / pullMagnitude) * pullForce * 0.3;
+                                updatePlayerPosition();
+                            }
+                        }
+                        break;
+                        
+                    case 'blink':
+                        // 闪烁陷阱逻辑已通过CSS动画处理
+                        const computedStyle = window.getComputedStyle(trap);
+                        trap.dataset.visible = computedStyle.opacity > 0.5 ? 'true' : 'false';
+                        break;
+                }
+            });
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (gameState.gameOver) return;
+            
+            if (e.key in keys) {
+                keys[e.key] = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key in keys) {
+                keys[e.key] = false;
+            }
+        });
+
+        // 事件监听
+        nextBtn.addEventListener('click', () => {
+            playClickSound();
+            nextLevel();
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            playClickSound();
+            startLevel();
+        });
+        
+        levelSelectBtn.addEventListener('click', () => {
+            playClickSound();
+            createLevelButtons();
+            levelSelectModal.classList.remove('hidden');
+        });
+        
+        soundToggleBtn.addEventListener('click', toggleSound);
+        
+        musicToggleBtn.addEventListener('click', () => {
+            playClickSound();
+            toggleMusic();
+        });
+        
+
+        
+        closeSelectBtn.addEventListener('click', () => {
+            playClickSound();
+            levelSelectModal.classList.add('hidden');
+        });
+        
+        resetProgressBtn.addEventListener('click', () => {
+            playClickSound();
+            if (confirm('确定要重置所有进度吗？这将删除您的所有游戏记录！')) {
+                resetProgress();
+                initGame();
+                messageDisplay.textContent = '进度已重置！';
+                setTimeout(() => {
+                    messageDisplay.textContent = '';
+                }, 2000);
+            }
+        });
+
+        // 页面加载时立即隐藏关卡选择器
+        levelSelectModal.classList.add('hidden');
+        
+        // 处理首次用户交互（用于启动背景音乐）
+        let firstInteraction = true;
+        function handleFirstInteraction() {
+            if (firstInteraction && musicEnabled && backgroundMusic) {
+                playBackgroundMusic();
+                firstInteraction = false;
+            }
+        }
+
+        // 监听各种用户交互事件
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+        document.addEventListener('touchstart', handleFirstInteraction);
+        
+        // 开始游戏
+        initGame();
+        gameLoop();
+    </script>
+</body>
+</html>
