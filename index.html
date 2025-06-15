@@ -345,6 +345,147 @@
             }
         }
         
+        /* 移动端虚拟方向键 - 只在触摸设备上显示 */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            opacity: 0.7;
+        }
+        
+        .dpad {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 触摸操作提示 */
+        .touch-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            z-index: 1001;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .touch-hint.show {
+            opacity: 1;
+        }
+        
+        .dpad-btn {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dpad-btn:active {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dpad-up {
+            top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .dpad-down {
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .dpad-left {
+            left: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .dpad-right {
+            right: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* 只在触摸设备上显示虚拟按键 */
+        @media (hover: none) and (pointer: coarse) {
+            .mobile-controls {
+                display: block;
+            }
+        }
+        
+        /* 确保在小屏幕触摸设备上虚拟按键不会遮挡游戏内容 */
+        @media (hover: none) and (pointer: coarse) and (max-height: 600px) {
+            body {
+                padding-bottom: 160px;
+            }
+            
+            .mobile-controls {
+                bottom: 10px;
+            }
+            
+            .dpad {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .dpad-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+        }
+        
+        /* 横屏模式下的虚拟按键调整 */
+        @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+            .mobile-controls {
+                bottom: 10px;
+                left: 20px;
+                transform: none;
+            }
+            
+            .dpad {
+                width: 90px;
+                height: 90px;
+            }
+            
+            .dpad-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+        }
+        
 
         
 
@@ -1057,6 +1198,23 @@
         <h3>选择关卡 (已解锁: 第1-<span id="unlocked-levels">1</span>关)</h3>
         <div id="level-buttons"></div>
         <button id="close-select-btn">关闭</button>
+    </div>
+    
+    <!-- 移动端虚拟方向键 -->
+    <div class="mobile-controls">
+        <div class="dpad">
+            <div class="dpad-btn dpad-up" data-key="ArrowUp">↑</div>
+            <div class="dpad-btn dpad-down" data-key="ArrowDown">↓</div>
+            <div class="dpad-btn dpad-left" data-key="ArrowLeft">←</div>
+            <div class="dpad-btn dpad-right" data-key="ArrowRight">→</div>
+        </div>
+    </div>
+    
+    <!-- 触摸操作提示 -->
+    <div class="touch-hint" id="touch-hint">
+        📱 <strong>拖拽角色</strong>在游戏区域内移动<br>
+        角色会跟随你的手指实时移动<br>
+        点击钥匙收集，右下角有虚拟方向键备用
     </div>
 
     <script>
@@ -1931,8 +2089,10 @@
             const baseSize = 40;
             const width = baseSize * sizeMultiplier;
             const height = baseSize * sizeMultiplier;
-            const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - width);
-            const bottom = seededRandom(seed + seedCounter++) * (gameHeight - height - 50);
+            
+            // 生成安全位置，避免与其他元素冲突
+            const position = generateSafePosition(width, height, seed, seedCounter);
+            seedCounter = position.seedCounter;
             
             switch(trapType) {
                 case 'invisible':
@@ -1993,8 +2153,8 @@
             
             trap.style.width = width + 'px';
             trap.style.height = height + 'px';
-            trap.style.left = left + 'px';
-            trap.style.bottom = bottom + 'px';
+            trap.style.left = position.x + 'px';
+            trap.style.bottom = (gameHeight - position.y - height) + 'px';
             
             // 保存特殊陷阱信息
             gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
@@ -2002,8 +2162,8 @@
                 trapType: trapType,
                 width: width,
                 height: height,
-                left: left,
-                bottom: bottom,
+                left: position.x,
+                bottom: (gameHeight - position.y - height),
                 data: {...trap.dataset}
             });
             
@@ -2107,13 +2267,17 @@
                 } else if (randomValue < specialChance + spikeChance) {
                     // 尖刺陷阱（优先级提高）
                     trap.className = 'spike';
-                    const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - 30);
-                    trap.style.left = left + 'px';
+                    
+                    // 生成安全位置，避免与其他元素冲突
+                    const position = generateSafePosition(30, 40, seed, seedCounter);
+                    seedCounter = position.seedCounter;
+                    
+                    trap.style.left = position.x + 'px';
                     
                     // 保存布局信息
                     gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
                         className: 'spike',
-                        left: left
+                        left: position.x
                     });
                 } else if (randomValue < specialChance + spikeChance + trapChance) {
                     // 矩形陷阱
@@ -2122,32 +2286,38 @@
                     const height = (20 + seededRandom(seed + seedCounter++) * 50) * sizeMultiplier;
                     const finalWidth = Math.min(width, 120);
                     const finalHeight = Math.min(height, 80);
-                    const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - finalWidth);
-                    const bottom = seededRandom(seed + seedCounter++) * (gameHeight - finalHeight - 50);
+                    
+                    // 生成安全位置，避免与其他元素冲突
+                    const position = generateSafePosition(finalWidth, finalHeight, seed, seedCounter);
+                    seedCounter = position.seedCounter;
                     
                     trap.style.width = finalWidth + 'px';
                     trap.style.height = finalHeight + 'px';
-                    trap.style.left = left + 'px';
-                    trap.style.bottom = bottom + 'px';
+                    trap.style.left = position.x + 'px';
+                    trap.style.bottom = (gameHeight - position.y - finalHeight) + 'px';
                     
                     // 保存布局信息
                     gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
                         className: 'trap',
                         width: finalWidth,
                         height: finalHeight,
-                        left: left,
-                        bottom: bottom
+                        left: position.x,
+                        bottom: (gameHeight - position.y - finalHeight)
                     });
                 } else {
                     // 如果都不满足，创建一个尖刺陷阱作为默认
                     trap.className = 'spike';
-                    const left = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200 - 30);
-                    trap.style.left = left + 'px';
+                    
+                    // 生成安全位置，避免与其他元素冲突
+                    const position = generateSafePosition(30, 40, seed, seedCounter);
+                    seedCounter = position.seedCounter;
+                    
+                    trap.style.left = position.x + 'px';
                     
                     // 保存布局信息
                     gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
                         className: 'spike',
-                        left: left
+                        left: position.x
                     });
                 }
                 
@@ -2214,9 +2384,11 @@
                 const movingTrap = document.createElement('div');
                 movingTrap.className = 'moving-trap';
                 
-                // 使用种子生成固定的初始位置和移动方向
-                const startX = 100 + seededRandom(seed + seedCounter++) * (gameWidth - 200);
-                const startY = 50 + seededRandom(seed + seedCounter++) * (gameHeight - 100);
+                // 生成安全的初始位置，避免与其他元素冲突
+                const position = generateSafePosition(40, 40, seed, seedCounter);
+                seedCounter = position.seedCounter;
+                const startX = position.x;
+                const startY = position.y;
                 
                 // 根据关卡调整移动速度
                 const baseSpeed = 2 + gameState.currentLevel * 0.05; // 速度随关卡增加
@@ -2276,6 +2448,131 @@
             player.style.top = gameState.player.y + 'px';
         }
         
+        // 检查位置是否与现有元素冲突
+        function isPositionOccupied(x, y, width, height, buffer = 20) {
+            const newRect = {
+                left: x - buffer,
+                right: x + width + buffer,
+                top: y - buffer,
+                bottom: y + height + buffer
+            };
+            
+            // 检查与出口的距离（确保出口周围有足够空间）
+            const doorRect = {
+                left: gameWidth - 80 - 40, // 出口左边界 - 额外缓冲
+                right: gameWidth - 20 + 40, // 出口右边界 + 额外缓冲
+                top: gameHeight - 100 - 40, // 出口顶部 - 额外缓冲
+                bottom: gameHeight + 40 // 出口底部 + 额外缓冲
+            };
+            
+            if (newRect.right > doorRect.left && newRect.left < doorRect.right &&
+                newRect.bottom > doorRect.top && newRect.top < doorRect.bottom) {
+                return true; // 与出口区域冲突
+            }
+            
+            // 检查与起始位置的距离（确保玩家起始位置安全）
+            const startRect = {
+                left: 50 - 60,
+                right: 50 + 40 + 60,
+                top: 250 - 60,
+                bottom: 250 + 50 + 60
+            };
+            
+            if (newRect.right > startRect.left && newRect.left < startRect.right &&
+                newRect.bottom > startRect.top && newRect.top < startRect.bottom) {
+                return true; // 与起始位置冲突
+            }
+            
+            // 检查与现有陷阱的冲突（包括DOM中的和布局数据中的）
+            for (const trap of gameState.traps) {
+                if (trap.parentNode) { // 只检查已添加到DOM的陷阱
+                    const trapRect = trap.getBoundingClientRect();
+                    const containerRect = gameContainer.getBoundingClientRect();
+                    const trapX = trapRect.left - containerRect.left;
+                    const trapY = trapRect.top - containerRect.top;
+                    const trapWidth = trapRect.width || 40;
+                    const trapHeight = trapRect.height || 40;
+                    
+                    const existingRect = {
+                        left: trapX - buffer,
+                        right: trapX + trapWidth + buffer,
+                        top: trapY - buffer,
+                        bottom: trapY + trapHeight + buffer
+                    };
+                    
+                    if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                        newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                        return true; // 与现有陷阱冲突
+                    }
+                }
+            }
+            
+            // 检查与布局数据中已规划的陷阱位置冲突
+            if (gameState.levelLayouts[gameState.currentLevel]) {
+                for (const trapData of gameState.levelLayouts[gameState.currentLevel].staticTraps) {
+                    const trapX = trapData.left;
+                    const trapY = trapData.bottom ? gameHeight - trapData.bottom - (trapData.height || 40) : 0;
+                    const trapWidth = trapData.width || 40;
+                    const trapHeight = trapData.height || 40;
+                    
+                    const existingRect = {
+                        left: trapX - buffer,
+                        right: trapX + trapWidth + buffer,
+                        top: trapY - buffer,
+                        bottom: trapY + trapHeight + buffer
+                    };
+                    
+                    if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                        newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                        return true; // 与规划的陷阱位置冲突
+                    }
+                }
+            }
+            
+            // 检查与现有钥匙的冲突
+            for (const key of gameState.keys) {
+                if (key.parentNode) { // 只检查已添加到DOM的钥匙
+                    const keyRect = key.getBoundingClientRect();
+                    const containerRect = gameContainer.getBoundingClientRect();
+                    const keyX = keyRect.left - containerRect.left;
+                    const keyY = keyRect.top - containerRect.top;
+                    const keyWidth = keyRect.width || 30;
+                    const keyHeight = keyRect.height || 30;
+                    
+                    const existingRect = {
+                        left: keyX - buffer,
+                        right: keyX + keyWidth + buffer,
+                        top: keyY - buffer,
+                        bottom: keyY + keyHeight + buffer
+                    };
+                    
+                    if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                        newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                        return true; // 与现有钥匙冲突
+                    }
+                }
+            }
+            
+            return false; // 位置可用
+        }
+        
+        // 生成安全位置
+        function generateSafePosition(width, height, seed, seedCounter, maxAttempts = 50) {
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const x = 100 + seededRandom(seed + seedCounter + attempt * 2) * (gameWidth - 200 - width);
+                const y = 50 + seededRandom(seed + seedCounter + attempt * 2 + 1) * (gameHeight - 100 - height);
+                
+                if (!isPositionOccupied(x, y, width, height)) {
+                    return { x, y, seedCounter: seedCounter + attempt * 2 + 2 };
+                }
+            }
+            
+            // 如果找不到安全位置，返回一个相对安全的默认位置
+            const fallbackX = 150 + (seedCounter % 3) * 200;
+            const fallbackY = 100 + (seedCounter % 2) * 200;
+            return { x: fallbackX, y: fallbackY, seedCounter: seedCounter + maxAttempts * 2 };
+        }
+
         // 创建钥匙
         function createKeys() {
             // 只在第3、4、5关生成钥匙
@@ -2299,12 +2596,12 @@
                 key.className = 'key';
                 key.innerHTML = '🗝️';
                 
-                // 使用种子生成固定位置
-                const left = 150 + seededRandom(seed + seedCounter++) * (gameWidth - 300);
-                const top = 50 + seededRandom(seed + seedCounter++) * (gameHeight - 150);
+                // 生成安全位置，避免与陷阱冲突
+                const position = generateSafePosition(30, 30, seed, seedCounter);
+                seedCounter = position.seedCounter;
                 
-                key.style.left = left + 'px';
-                key.style.top = top + 'px';
+                key.style.left = position.x + 'px';
+                key.style.top = position.y + 'px';
                 
                 // 不需要点击事件，通过碰撞检测收集
                 
@@ -2932,6 +3229,152 @@
                 keys[e.key] = false;
             }
         });
+        
+        // 移动端触摸控制
+        function initMobileControls() {
+            let isTouching = false;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let playerStartX = 0;
+            let playerStartY = 0;
+            let continuousMove = false;
+            let lastUpdateTime = 0;
+            const updateInterval = 16; // 约60fps的更新频率
+            
+            // 触摸跟随控制 - 角色跟随手指移动
+            gameContainer.addEventListener('touchstart', (e) => {
+                if (gameState.gameOver) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const rect = gameContainer.getBoundingClientRect();
+                touchStartX = touch.clientX - rect.left;
+                touchStartY = touch.clientY - rect.top;
+                
+                // 记录角色开始位置
+                playerStartX = gameState.player.x;
+                playerStartY = gameState.player.y;
+                
+                isTouching = true;
+                continuousMove = false;
+                
+                // 停止所有键盘移动
+                keys.ArrowUp = false;
+                keys.ArrowDown = false;
+                keys.ArrowLeft = false;
+                keys.ArrowRight = false;
+            }, { passive: false });
+            
+            gameContainer.addEventListener('touchmove', (e) => {
+                if (gameState.gameOver || !isTouching) return;
+                e.preventDefault();
+                
+                const currentTime = Date.now();
+                // 限制更新频率，避免过于频繁的计算
+                if (currentTime - lastUpdateTime < updateInterval) return;
+                lastUpdateTime = currentTime;
+                
+                const touch = e.touches[0];
+                const rect = gameContainer.getBoundingClientRect();
+                const currentTouchX = touch.clientX - rect.left;
+                const currentTouchY = touch.clientY - rect.top;
+                
+                // 计算手指移动的距离
+                const deltaX = currentTouchX - touchStartX;
+                const deltaY = currentTouchY - touchStartY;
+                
+                // 如果移动距离超过阈值，标记为连续移动
+                if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                    continuousMove = true;
+                }
+                
+                // 计算新的角色位置
+                let newX = playerStartX + deltaX;
+                let newY = playerStartY + deltaY;
+                
+                // 边界检查
+                newX = Math.max(0, Math.min(gameWidth - 40, newX));
+                newY = Math.max(0, Math.min(gameHeight - 50, newY));
+                
+                // 更新角色位置
+                gameState.player.x = newX;
+                gameState.player.y = newY;
+                updatePlayerPosition();
+                
+            }, { passive: false });
+            
+            gameContainer.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isTouching = false;
+                
+                // 如果是短距离点击（非拖拽），检查是否点击了钥匙
+                if (!continuousMove) {
+                    const touch = e.changedTouches[0];
+                    const rect = gameContainer.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    
+                    // 检查是否点击了钥匙
+                    gameState.keys.forEach(key => {
+                        const keyRect = key.getBoundingClientRect();
+                        const containerRect = gameContainer.getBoundingClientRect();
+                        const keyX = keyRect.left - containerRect.left;
+                        const keyY = keyRect.top - containerRect.top;
+                        
+                        if (x >= keyX && x <= keyX + keyRect.width &&
+                            y >= keyY && y <= keyY + keyRect.height) {
+                            collectKey(key);
+                        }
+                    });
+                }
+                
+                continuousMove = false;
+            }, { passive: false });
+            
+            // 虚拟按键控制（作为备选方案）
+            const dpadButtons = document.querySelectorAll('.dpad-btn');
+            
+            dpadButtons.forEach(btn => {
+                const key = btn.dataset.key;
+                
+                // 触摸开始
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (gameState.gameOver) return;
+                    keys[key] = true;
+                    playClickSound();
+                }, { passive: false });
+                
+                // 触摸结束
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                }, { passive: false });
+                
+                // 触摸取消（手指移出按钮区域）
+                btn.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                }, { passive: false });
+                
+                // 鼠标事件（用于桌面测试）
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    if (gameState.gameOver) return;
+                    keys[key] = true;
+                    playClickSound();
+                });
+                
+                btn.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                });
+                
+                btn.addEventListener('mouseleave', (e) => {
+                    keys[key] = false;
+                });
+            });
+        }
 
         // 事件监听
         nextBtn.addEventListener('click', () => {
@@ -2997,6 +3440,27 @@
         window.addEventListener('resize', () => {
             updateGameDimensions();
         });
+        
+        // 初始化移动端控制
+        initMobileControls();
+        
+        // 显示移动端操作提示
+        function showTouchHint() {
+            const touchHint = document.getElementById('touch-hint');
+            const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+            
+            if (isMobile && touchHint) {
+                touchHint.classList.add('show');
+                setTimeout(() => {
+                    touchHint.classList.remove('show');
+                }, 4000); // 4秒后自动隐藏
+            }
+        }
+        
+        // 在移动设备上显示操作提示
+        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+            setTimeout(showTouchHint, 1000); // 1秒后显示提示
+        }
         
         // 开始游戏
         initGame();
