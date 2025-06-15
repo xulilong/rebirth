@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重生之MT大冒险</title>
+    <title>拯救Zack - MT冒险</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -91,6 +91,27 @@
             font-size: 18px;
             color: #FFD700;
             font-weight: normal;
+        }
+
+        #loop-info {
+            color: #e74c3c;
+            font-size: 18px;
+            margin-left: 15px;
+            font-weight: bold;
+        }
+        
+        .location-info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 2px solid #e74c3c;
         }
         .controls {
             margin: 20px 0;
@@ -201,6 +222,355 @@
         }
         .hidden {
             display: none;
+        }
+
+        /* 对话框样式 */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .dialog-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            border: 3px solid #e74c3c;
+        }
+
+        .dialog-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+
+        .dialog-content {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #ecf0f1;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .dialog-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .dialog-btn:hover {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Zack拯救成功对话框样式 */
+        .zack-success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(44, 62, 80, 0.95) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: successFade 0.8s ease-in;
+        }
+
+        @keyframes successFade {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .zack-success-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            text-align: center;
+            position: relative;
+            border: 4px solid #FFD700;
+            animation: boxBounce 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes boxBounce {
+            0% { transform: translateY(-50px); opacity: 0; }
+            60% { transform: translateY(10px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .zack-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            border: 4px solid #FFD700;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            animation: avatarGlow 2s ease-in-out infinite alternate;
+            background-image: url('images/zack.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .zack-avatar.fallback {
+            background-image: none;
+        }
+
+        @keyframes avatarGlow {
+            0% { box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            100% { box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 0 20px rgba(255, 215, 0, 0); }
+        }
+
+        .zack-success-title {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .zack-success-content {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #ecf0f1;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .zack-success-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .zack-success-btn:hover {
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        /* CEO就职仪式动画 */
+        .ceo-ceremony-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            animation: ceremonyFadeIn 1s ease-in;
+        }
+
+        @keyframes ceremonyFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .mt-logo {
+            font-size: 8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FF6B35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes logoGlow {
+            0% { 
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            100% { 
+                transform: scale(1.05);
+                filter: brightness(1.2);
+            }
+        }
+
+        .ceo-title {
+            font-size: 3em;
+            color: #FFD700;
+            margin-bottom: 20px;
+            animation: titleSlideIn 1.5s ease-out 0.5s both;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @keyframes titleSlideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ceo-subtitle {
+            font-size: 1.5em;
+            color: #ecf0f1;
+            margin-bottom: 40px;
+            animation: subtitleFadeIn 1.5s ease-out 1s both;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        @keyframes subtitleFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fireworks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: fireworkExplode 2s ease-out infinite;
+        }
+
+        @keyframes fireworkExplode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .mt-values {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            animation: valuesSlideUp 2s ease-out 1.5s both;
+        }
+
+        @keyframes valuesSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .value-item {
+            text-align: center;
+            color: #bdc3c7;
+            font-size: 1.1em;
+        }
+
+        .value-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .continue-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-top: 40px;
+            animation: btnAppear 2s ease-out 2s both;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        @keyframes btnAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .continue-btn:hover {
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
         }
         .spike {
             position: absolute;
@@ -467,10 +837,14 @@
     </style>
 </head>
 <body>
-    <h1>重生之MT大冒险</h1>
+    <h1>拯救Zack - MT冒险</h1>
     <div class="level-info">
         第 <span id="level">1</span> 关 
         <span id="progress-info">(最高记录: 第 <span id="max-level">1</span> 关)</span>
+        <span id="loop-info">🔄 第 <span id="loop-count">3</span> 次循环</span>
+    </div>
+    <div class="location-info">
+        📍 当前位置: <span id="location">公司前台</span>
     </div>
     <div id="message"></div>
     <div id="game-container">
@@ -496,7 +870,7 @@
         // 游戏状态
         const gameState = {
             currentLevel: 1,
-            maxLevel: 100,
+            maxLevel: 10,
             maxUnlockedLevel: 1, // 最高解锁关卡
             player: { x: 50, y: 250 },
             isMoving: false,
@@ -514,6 +888,7 @@
             try {
                 localStorage.setItem('wizardGame_maxLevel', gameState.maxUnlockedLevel);
                 localStorage.setItem('wizardGame_currentLevel', gameState.currentLevel);
+                localStorage.setItem('wizardGame_loopCount', loopCount);
             } catch (e) {
                 console.log('无法保存进度:', e);
             }
@@ -523,12 +898,18 @@
             try {
                 const savedMaxLevel = localStorage.getItem('wizardGame_maxLevel');
                 const savedCurrentLevel = localStorage.getItem('wizardGame_currentLevel');
+                const savedLoopCount = localStorage.getItem('wizardGame_loopCount');
                 
                 if (savedMaxLevel) {
                     gameState.maxUnlockedLevel = parseInt(savedMaxLevel);
                 }
                 if (savedCurrentLevel) {
                     gameState.currentLevel = Math.min(parseInt(savedCurrentLevel), gameState.maxUnlockedLevel);
+                }
+                if (savedLoopCount) {
+                    loopCount = parseInt(savedLoopCount);
+                } else {
+                    loopCount = 3; // 默认值
                 }
             } catch (e) {
                 console.log('无法加载进度:', e);
@@ -539,18 +920,119 @@
             try {
                 localStorage.removeItem('wizardGame_maxLevel');
                 localStorage.removeItem('wizardGame_currentLevel');
+                localStorage.removeItem('wizardGame_loopCount');
                 gameState.maxUnlockedLevel = 1;
                 gameState.currentLevel = 1;
+                loopCount = 3; // 重置循环次数
+                updateProgressDisplay(); // 更新显示
             } catch (e) {
                 console.log('无法重置进度:', e);
             }
         }
 
+        // 关卡位置信息
+        const levelLocations = {
+            1: "公司前台",
+            2: "第一食堂", 
+            3: "会议室-文明",
+            4: "会议室-乐高",
+            5: "会议室-回音群岛",
+            6: "第二食堂",
+            7: "HOP项目组",
+            8: "JUMP项目组",
+            9: "技术部",
+            10: "CEO办公室"
+        };
+
+        // 关卡对话信息
+        const levelDialogs = {
+            1: {
+                title: "第3次循环开始！",
+                content: `你被困在了MT，这已经是你第3次循环了！！！
+
+你不知道发生了什么，但是你的直觉告诉你，一定有什么重要的任务等着你。
+
+不要问为什么，毕竟电视剧里一般都是这么演的。`
+            },
+            2: {
+                title: "冲向食堂！",
+                content: `循环？开什么玩笑？作为一个打工人，还是干饭重要！12点半了，冲！！！
+
+不管发生什么，先填饱肚子再说。毕竟，革命的本钱是身体！`
+            },
+            3: {
+                title: "会议室-文明",
+                content: `这里是文明会议室，墙上贴着各种企业文化标语。
+
+"以客户为中心，以奋斗者为本"... 等等，现在不是读标语的时候！
+
+你感觉这里隐藏着什么重要信息，小心前进！`
+            },
+            4: {
+                title: "会议室-乐高",
+                content: `乐高会议室里摆满了各种乐高模型，充满了创意的气息。
+
+这些积木仿佛在诉说着无数个创新的故事...
+
+但现在你需要专注于找到出路，创意稍后再欣赏！`
+            },
+            5: {
+                title: "会议室-回音群岛",
+                content: `回音群岛会议室，这个名字总是让人想起远方的海岛。
+
+墙上的装饰画描绘着蓝色的海洋和绿色的岛屿...
+
+但现在你被困在这个"群岛"中，必须找到通往下一站的"航线"！`
+            },
+            6: {
+                title: "第二食堂",
+                content: `又到了食堂！看来MT的员工真的很重视吃饭这件事。
+
+这里比第一食堂更大，选择也更多。但是...
+
+现在不是品尝美食的时候，你必须继续前进寻找真相！`
+            },
+            7: {
+                title: "HOP项目组",
+                content: `这里是HOP项目组的办公区域，到处都是代码和设计图。
+
+屏幕上闪烁着各种数据和图表，显示着项目的进展...
+
+你感觉离真相越来越近了，但危险也在增加！`
+            },
+            8: {
+                title: "JUMP项目组",
+                content: `JUMP项目组，从名字就能感受到这个团队的活力！
+
+墙上贴着"敏捷开发"、"快速迭代"的标语...
+
+看起来你也需要"JUMP"一下，快速通过这里的重重障碍！`
+            },
+            9: {
+                title: "技术部核心区域",
+                content: `终于到了技术部的核心区域！这里是MT公司的技术心脏。
+
+服务器的嗡嗡声、键盘的敲击声、还有工程师们专注的神情...
+
+你感觉答案就在前方，但最后的挑战也即将到来！`
+            },
+            10: {
+                title: "CEO办公室 - 最终决战",
+                content: `这里就是CEO办公室，Zack被困的地方！
+
+豪华的装修、巨大的落地窗、还有那张标志性的办公桌...
+
+是时候完成你的使命了！拯救Zack，成为下一任CEO！`
+            }
+        };
+
         // DOM元素
         const levelDisplay = document.getElementById('level');
         const maxLevelDisplay = document.getElementById('max-level');
         const unlockedLevelsDisplay = document.getElementById('unlocked-levels');
+        const locationDisplay = document.getElementById('location');
         const messageDisplay = document.getElementById('message');
+        const loopCountDisplay = document.getElementById('loop-count');
         const gameContainer = document.getElementById('game-container');
         const player = document.getElementById('player');
         const door = document.getElementById('door');
@@ -567,6 +1049,7 @@
         // 游戏变量
         let gameWidth = 800;
         let gameHeight = 500;
+        let loopCount = 3; // 初始循环次数为3
         let doorRect = door.getBoundingClientRect();
         let basePlayerSpeed = 8;
         let playerSpeed = 8;
@@ -581,6 +1064,237 @@
         let backgroundMusic;
         let musicEnabled = true;
         let musicVolume = 0.1; // 背景音乐音量（10%）
+
+        // 显示对话框
+        function showDialog(title, content, callback) {
+            const overlay = document.createElement('div');
+            overlay.className = 'dialog-overlay';
+            
+            overlay.innerHTML = `
+                <div class="dialog-box">
+                    <div class="dialog-title">${title}</div>
+                    <div class="dialog-content">${content}</div>
+                    <button class="dialog-btn">开始冒险！</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            const btn = overlay.querySelector('.dialog-btn');
+            btn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                if (callback) callback();
+            });
+        }
+
+        // 显示Zack拯救成功对话框
+        function showZackSuccessDialog() {
+            const overlay = document.createElement('div');
+            overlay.className = 'zack-success-overlay';
+            
+            overlay.innerHTML = `
+                <div class="zack-success-box">
+                    <div class="zack-avatar" id="ceo-avatar"></div>
+                    <div class="zack-success-title">🎉 拯救成功！</div>
+                    <div class="zack-success-content">
+                        恭喜你！经过重重困难，你终于成功拯救了Zack！
+                        <br><br>
+                        <strong>Zack:</strong> "太感谢你了！我被困在这个循环中好久了！你展现出了真正的领导力和勇气。"
+                        <br><br>
+                        <strong>Zack:</strong> "从今天起，你就是MT公司的新任CEO！公司的未来就交给你了！"
+                        <br><br>
+                        🏆 <strong>成就解锁：</strong> 循环终结者 - 成功打破时间循环，拯救CEO！
+                        <br>
+                        👑 <strong>新身份：</strong> MT公司CEO
+                    </div>
+                    <button class="zack-success-btn">接受CEO职位！</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // 检测CEO头像图片是否存在，如果不存在则使用emoji
+            const ceoAvatar = overlay.querySelector('#ceo-avatar');
+            const testImg = new Image();
+            testImg.onload = function() {
+                // 图片加载成功，使用背景图片
+                console.log('CEO头像加载成功');
+            };
+            testImg.onerror = function() {
+                // 图片加载失败，使用emoji作为后备
+                console.log('CEO头像加载失败，使用emoji后备');
+                ceoAvatar.classList.add('fallback');
+                ceoAvatar.textContent = '👨‍💼';
+            };
+            testImg.src = 'images/zack.jpeg';
+            
+            const btn = overlay.querySelector('.zack-success-btn');
+            btn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                // 显示CEO就职仪式
+                showCEOCeremony();
+            });
+        }
+
+        // 显示CEO就职仪式
+        function showCEOCeremony() {
+            const overlay = document.createElement('div');
+            overlay.className = 'ceo-ceremony-overlay';
+            
+            overlay.innerHTML = `
+                <div class="fireworks"></div>
+                <div class="mt-logo">MT</div>
+                <div class="ceo-title">👑 新任CEO就职典礼</div>
+                <div class="ceo-subtitle">
+                    欢迎加入MT公司领导团队！<br>
+                    让我们一起创造更美好的未来！
+                </div>
+                <div class="mt-values">
+                    <div class="value-item">
+                        <span class="value-icon">🎯</span>
+                        <div>以客户为中心</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">💪</span>
+                        <div>以奋斗者为本</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">🚀</span>
+                        <div>持续创新</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">🤝</span>
+                        <div>合作共赢</div>
+                    </div>
+                </div>
+                <button class="continue-btn">开始CEO之旅！</button>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // 创建烟花效果
+            createFireworks(overlay.querySelector('.fireworks'));
+            
+            // 创建彩带效果
+            createConfetti(overlay);
+            
+            const btn = overlay.querySelector('.continue-btn');
+            btn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                // 重置所有游戏数据和缓存
+                resetAllGameData();
+            });
+        }
+
+        // 重置所有游戏数据和缓存
+        function resetAllGameData() {
+            // 清除所有本地存储数据
+            localStorage.removeItem('wizardGame_currentLevel');
+            localStorage.removeItem('wizardGame_maxLevel');
+            localStorage.removeItem('wizardGame_loopCount');
+            localStorage.removeItem('wizardGame_soundEnabled');
+            localStorage.removeItem('wizardGame_musicEnabled');
+            localStorage.removeItem('wizardGame_musicVolume');
+            localStorage.removeItem('wizardGame_playerSpeed');
+            localStorage.removeItem('wizardGame_gameStarted');
+            
+            // 重置游戏变量到初始状态
+            gameState.currentLevel = 1;
+            gameState.maxUnlockedLevel = 1;
+            loopCount = 3;
+            playerSpeed = basePlayerSpeed;
+            gameStarted = false;
+            
+            // 重置玩家位置
+            player.style.left = '50px';
+            player.style.top = '50px';
+            
+            // 清空游戏区域
+            gameArea.innerHTML = '';
+            gameArea.appendChild(player);
+            
+            // 重置显示
+            messageDisplay.textContent = '欢迎来到拯救Zack - MT冒险！点击开始游戏！';
+            updateProgressDisplay();
+            
+            // 重新显示开始按钮
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) {
+                startBtn.style.display = 'block';
+                startBtn.textContent = '开始游戏';
+            }
+            
+            // 停止背景音乐并重置
+            if (backgroundMusic) {
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+            }
+            
+            // 重置音频设置
+            soundEnabled = true;
+            musicEnabled = true;
+            musicVolume = 0.1;
+            
+            // 更新按钮状态
+            updateSoundButton();
+            updateMusicButton();
+            
+            // 显示重置完成信息
+            setTimeout(() => {
+                messageDisplay.textContent = '🎉 恭喜成为MT公司CEO！游戏已重置，准备开始新的冒险！';
+                setTimeout(() => {
+                    messageDisplay.textContent = '欢迎来到拯救Zack - MT冒险！点击开始游戏！';
+                }, 3000);
+            }, 500);
+        }
+
+        // 创建烟花效果
+        function createFireworks(container) {
+            const colors = ['#FFD700', '#FF6B35', '#FF1744', '#00E676', '#2196F3', '#9C27B0'];
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    firework.style.left = Math.random() * 100 + '%';
+                    firework.style.top = Math.random() * 100 + '%';
+                    firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    firework.style.animationDelay = Math.random() * 2 + 's';
+                    container.appendChild(firework);
+                    
+                    // 移除烟花元素
+                    setTimeout(() => {
+                        if (firework.parentNode) {
+                            firework.parentNode.removeChild(firework);
+                        }
+                    }, 2000);
+                }, i * 200);
+            }
+        }
+
+        // 创建彩带效果
+        function createConfetti(container) {
+            const colors = ['#FFD700', '#FF6B35', '#FF1744', '#00E676', '#2196F3', '#9C27B0'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    container.appendChild(confetti);
+                    
+                    // 移除彩带元素
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            confetti.parentNode.removeChild(confetti);
+                        }
+                    }, 5000);
+                }, i * 100);
+            }
+        }
 
         // 初始化音频上下文
         function initAudio() {
@@ -851,6 +1565,7 @@
         function updateProgressDisplay() {
             maxLevelDisplay.textContent = gameState.maxUnlockedLevel;
             unlockedLevelsDisplay.textContent = gameState.maxUnlockedLevel;
+            loopCountDisplay.textContent = loopCount;
         }
 
         // 创建关卡选择按钮
@@ -938,14 +1653,23 @@
         function setupLevel() {
             levelDisplay.textContent = gameState.currentLevel;
             
+            // 更新位置显示
+            locationDisplay.textContent = levelLocations[gameState.currentLevel] || "未知区域";
+            
             // 根据关卡调整玩家移动速度（高关卡稍微快一点以应对更多陷阱）
-            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 20);
+            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
             
             // 根据关卡设置陷阱（生成新布局）
             createTraps(false);
             
             // 设置移动陷阱（生成新布局）
             setupMovingTraps(false);
+            
+            // 显示当前关卡的对话框
+            const currentDialog = levelDialogs[gameState.currentLevel];
+            if (currentDialog) {
+                showDialog(currentDialog.title, currentDialog.content);
+            }
         }
 
         // 生成关卡布局种子
@@ -1092,16 +1816,16 @@
             const seed = generateLevelSeed(gameState.currentLevel);
             let seedCounter = 0;
             
-            // 根据关卡数量递增难度
+            // 根据关卡数量递增难度 (适配10关)
             let trapCount;
-            if (gameState.currentLevel <= 10) {
-                trapCount = gameState.currentLevel * 2; // 第2关开始，2,4,6,8...个陷阱
-            } else if (gameState.currentLevel <= 30) {
-                trapCount = 20 + (gameState.currentLevel - 10) * 3; // 第11关起，每关增加3个
-            } else if (gameState.currentLevel <= 60) {
-                trapCount = 80 + (gameState.currentLevel - 30) * 2; // 第31关起，每关增加2个
+            if (gameState.currentLevel <= 3) {
+                trapCount = gameState.currentLevel * 2; // 第1-3关：2,4,6个陷阱
+            } else if (gameState.currentLevel <= 6) {
+                trapCount = 6 + (gameState.currentLevel - 3) * 3; // 第4-6关：9,12,15个陷阱
+            } else if (gameState.currentLevel <= 8) {
+                trapCount = 15 + (gameState.currentLevel - 6) * 4; // 第7-8关：19,23个陷阱
             } else {
-                trapCount = 140 + (gameState.currentLevel - 60); // 第61关起，每关增加1个
+                trapCount = 23 + (gameState.currentLevel - 8) * 5; // 第9-10关：28,33个陷阱
             }
             
             // 初始化关卡布局存储
@@ -1115,17 +1839,17 @@
             for (let i = 0; i < trapCount; i++) {
                 const trap = document.createElement('div');
                 
-                // 重新调整陷阱类型比例，让游戏更有趣
-                const specialChance = Math.min(0.15 + gameState.currentLevel * 0.008, 0.5); // 特殊陷阱比例大幅提升
-                const spikeChance = Math.min(0.3 + gameState.currentLevel * 0.01, 0.7); // 尖刺比例
-                const trapChance = 0.2; // 方块陷阱比例固定为20%，大幅减少
+                // 重新调整陷阱类型比例，让游戏更有趣 (适配10关)
+                const specialChance = Math.min(0.1 + gameState.currentLevel * 0.05, 0.6); // 特殊陷阱比例快速提升
+                const spikeChance = Math.min(0.2 + gameState.currentLevel * 0.05, 0.6); // 尖刺比例
+                const trapChance = 0.3; // 方块陷阱比例
                 const randomValue = seededRandom(seed + seedCounter++);
                 
                 // 高关卡的陷阱更大
-                const sizeMultiplier = 1 + gameState.currentLevel * 0.005;
+                const sizeMultiplier = 1 + gameState.currentLevel * 0.02; // 更快增长
                 
-                if (randomValue < specialChance && gameState.currentLevel >= 3) {
-                    // 创建特殊陷阱（从第3关开始，更早出现）
+                if (randomValue < specialChance && gameState.currentLevel >= 2) {
+                    // 创建特殊陷阱（从第2关开始，更早出现）
                     seedCounter = createSpecialTrap(trap, seed, seedCounter, sizeMultiplier);
                 } else if (randomValue < specialChance + spikeChance) {
                     // 尖刺陷阱（优先级提高）
@@ -1219,14 +1943,16 @@
             const seed = generateLevelSeed(gameState.currentLevel);
             let seedCounter = 1000; // 使用不同的起始值避免与静态陷阱冲突
             
-            // 根据关卡递增移动陷阱数量
+            // 根据关卡递增移动陷阱数量 (适配10关)
             let movingTrapCount;
-            if (gameState.currentLevel <= 15) {
-                movingTrapCount = Math.floor((gameState.currentLevel - 3) / 3); // 第4关开始，每3关增加1个
-            } else if (gameState.currentLevel <= 50) {
-                movingTrapCount = 4 + Math.floor((gameState.currentLevel - 15) / 5); // 第16关起，每5关增加1个
+            if (gameState.currentLevel <= 2) {
+                movingTrapCount = 0; // 第1-2关：无移动陷阱
+            } else if (gameState.currentLevel <= 5) {
+                movingTrapCount = Math.floor((gameState.currentLevel - 2) / 2); // 第3-5关：1,1,2个移动陷阱
+            } else if (gameState.currentLevel <= 8) {
+                movingTrapCount = 2 + (gameState.currentLevel - 5); // 第6-8关：3,4,5个移动陷阱
             } else {
-                movingTrapCount = Math.min(11 + Math.floor((gameState.currentLevel - 50) / 10), 20); // 第51关起，每10关增加1个，最多20个
+                movingTrapCount = 5 + (gameState.currentLevel - 8) * 2; // 第9-10关：7,9个移动陷阱
             }
             
             for (let i = 0; i < movingTrapCount; i++) {
@@ -1584,11 +2310,10 @@
             }
             
             if (gameState.currentLevel === gameState.maxLevel) {
-                messageDisplay.textContent = '🎉 恭喜！你已通关所有100关！你是真正的法师大师！';
+                // 第10关通关 - 显示Zack拯救成功对话框
                 setTimeout(() => {
-                    messageDisplay.textContent = '选择任意关卡继续挑战...';
-                    updateProgressDisplay();
-                }, 3000);
+                    showZackSuccessDialog();
+                }, 1500); // 等待特效完成后显示
             } else {
                 messageDisplay.textContent = `✨ 恭喜通过第 ${gameState.currentLevel} 关！解锁第 ${gameState.currentLevel + 1} 关！`;
                 // 2秒后自动进入下一关
@@ -1604,6 +2329,10 @@
             if (gameState.gameOver) return;
             gameState.gameOver = true;
             
+            // 增加循环次数
+            loopCount++;
+            updateProgressDisplay(); // 更新显示
+            
             // 播放爆炸音效
             playExplosionSound();
             
@@ -1617,7 +2346,7 @@
             // 隐藏玩家
             player.style.display = 'none';
             
-            messageDisplay.textContent = '💥 爆炸了！重新开始当前关卡...';
+            messageDisplay.textContent = `💥 爆炸了！第${loopCount}次循环开始...`;
             
             // 移除爆炸特效并重新开始当前关卡
             setTimeout(() => {
@@ -1650,7 +2379,7 @@
             
             // 重用现有的关卡布局
             levelDisplay.textContent = gameState.currentLevel;
-            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 20);
+            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
             createTraps(true); // 使用现有布局
             setupMovingTraps(true); // 使用现有布局
         }
