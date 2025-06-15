@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>重生之MT大冒险</title>
+    <title>拯救Zack</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,6 +76,83 @@
             right: 8px;
             top: 45%;
             box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+        
+        /* Zack显示样式 */
+        .zack-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: 4px solid #2E7D32;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            z-index: 20;
+            animation: zackAppear 2s ease-out;
+        }
+        
+        /* 对话框样式 */
+        .dialogue-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 500px;
+            min-width: 300px;
+            z-index: 100;
+            color: white;
+            font-size: 18px;
+            line-height: 1.5;
+            text-align: center;
+            animation: dialogueAppear 0.5s ease-out;
+        }
+        
+        .dialogue-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 10px;
+        }
+        
+        .dialogue-content {
+            margin-bottom: 15px;
+        }
+        
+        .dialogue-continue {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .dialogue-continue:hover {
+            background: #45a049;
+        }
+        
+        @keyframes dialogueAppear {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        @keyframes zackAppear {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         .trap {
             position: absolute;
@@ -762,6 +839,44 @@
             border: 2px solid #4E342E;
         }
         
+        /* 隐形地雷样式 */
+        .hidden-mine {
+            position: absolute;
+            background: transparent;
+            border: none;
+            cursor: crosshair;
+            z-index: 1;
+        }
+        
+        .hidden-mine.exploded {
+            background: radial-gradient(circle, #ff4444, #cc0000);
+            border: 2px solid #ff0000;
+            border-radius: 50%;
+            animation: mineExplode 0.5s ease-out;
+        }
+        
+        @keyframes mineExplode {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(2); opacity: 0.8; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        /* 迷宫墙壁样式 */
+        .maze-wall {
+            position: absolute;
+            background-color: #8B4513;
+            border: 1px solid #654321;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3);
+            background-image: 
+                linear-gradient(45deg, #A0522D 25%, transparent 25%), 
+                linear-gradient(-45deg, #A0522D 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #A0522D 75%), 
+                linear-gradient(-45deg, transparent 75%, #A0522D 75%);
+            background-size: 8px 8px;
+            background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+            z-index: 1;
+        }
+        
         /* 黑暗模式 */
         .dark-mode {
             background: radial-gradient(circle at var(--light-x, 50%) var(--light-y, 50%), 
@@ -879,10 +994,11 @@
     </style>
 </head>
 <body>
-    <h1>重生之MT大冒险</h1>
+    <h1>拯救Zack</h1>
     <div class="level-info">
         第 <span id="level">1</span> 关 
         <span id="progress-info">(最高记录: 第 <span id="max-level">1</span> 关)</span>
+        <span id="loop-counter" style="display: none; margin-left: 20px; color: #ff6b6b;">循环: <span id="loop-count">0</span> 次</span>
     </div>
     <div id="message"></div>
     <div id="game-container">
@@ -906,12 +1022,16 @@
     </div>
     
     <div id="help-modal" class="hidden">
-        <h3>🎯 陷阱说明指南</h3>
+        <h3>🎯 拯救Zack - 游戏指南</h3>
         <div class="level-themes">
-            <h4>📖 重生之路</h4>
+            <h4>📖 拯救之路</h4>
             <div class="theme-item">
-                <span class="theme-range">第1-2关</span>
-                <span class="theme-desc">🌅 觉醒序章 - 法师从沉睡中苏醒，记忆开始复苏</span>
+                <span class="theme-range">第1关</span>
+                <span class="theme-desc">🏢 前台 - 安全通道，熟悉操作</span>
+            </div>
+            <div class="theme-item">
+                <span class="theme-range">第2关</span>
+                <span class="theme-desc">🍚 第一食堂 - 地雷阵，寻找10条安全路径</span>
             </div>
             <div class="theme-item">
                 <span class="theme-range">第3-10关</span>
@@ -1097,7 +1217,7 @@
         // 游戏状态
         const gameState = {
             currentLevel: 1,
-            maxLevel: 100,
+            maxLevel: 10,
             maxUnlockedLevel: 1, // 最高解锁关卡
             player: { x: 50, y: 250 },
             isMoving: false,
@@ -1108,6 +1228,8 @@
             playerFrozen: false, // 玩家是否被冰冻
             freezeEndTime: 0, // 冰冻结束时间
             levelLayouts: {}, // 存储每关的陷阱布局
+            loopCount: 0, // 当前关卡的循环次数
+            levelLoopCounts: {}, // 每个关卡的循环次数记录
             // 特殊关卡机制
             specialMechanics: {
                 isInvisible: false,        // 玩家隐形
@@ -1171,6 +1293,8 @@
         const maxLevelDisplay = document.getElementById('max-level');
         const unlockedLevelsDisplay = document.getElementById('unlocked-levels');
         const messageDisplay = document.getElementById('message');
+        const loopCounterDisplay = document.getElementById('loop-counter');
+        const loopCountDisplay = document.getElementById('loop-count');
         const gameContainer = document.getElementById('game-container');
         const player = document.getElementById('player');
         const door = document.getElementById('door');
@@ -1523,7 +1647,7 @@
             nextBtn.classList.add('hidden');
             
             // 清除之前的陷阱
-            document.querySelectorAll('.trap, .spike, .moving-trap').forEach(el => el.remove());
+            document.querySelectorAll('.trap, .spike, .moving-trap, .hidden-mine, .maze-wall').forEach(el => el.remove());
             
             updatePlayerPosition();
             setupLevel();
@@ -1554,7 +1678,7 @@
             updateProgressDisplay();
             
             // 清除之前的陷阱
-            document.querySelectorAll('.trap, .spike, .moving-trap').forEach(el => el.remove());
+            document.querySelectorAll('.trap, .spike, .moving-trap, .hidden-mine, .maze-wall').forEach(el => el.remove());
         }
 
         // 设置当前关卡
@@ -1564,6 +1688,9 @@
             // 根据关卡调整玩家移动速度（高关卡稍微快一点以应对更多陷阱）
             playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 20);
             
+            // 初始化循环计数器
+            initLoopCounter();
+            
             // 重置特殊机制
             resetSpecialMechanics();
             
@@ -1572,6 +1699,9 @@
             
             // 显示关卡主题提示
             showLevelTheme();
+            
+            // 更新门的位置
+            updateDoorPosition();
             
             // 根据关卡设置陷阱（生成新布局）
             createTraps(false);
@@ -1803,9 +1933,23 @@
             let themeMessage = '';
             
             if (gameState.currentLevel === 1) {
-                themeMessage = '🌅 初次觉醒：法师从沉睡中苏醒，踏上重生之路';
+                showDialogue([
+                    '🏢 前台',
+                    '你被困在了MT，这已经是你第16次循环了！！！',
+                    '你不知道发生了什么，但是你的直觉告诉你，',
+                    '一定有什么重要的任务等着你。',
+                    '不要问为什么，毕竟电视剧里一般都是这么演的。'
+                ]);
+                return;
             } else if (gameState.currentLevel === 2) {
-                themeMessage = '⚔️ 记忆碎片：往昔的战斗记忆开始复苏';
+                showDialogue([
+                    '🍚 第一食堂',
+                    '循环？开什么玩笑？',
+                    '作为一个打工人，还是干饭重要！',
+                    '12点半了，冲！！！',
+                    '⚠️ 小心地面的隐形地雷！'
+                ]);
+                return;
             } else if (gameState.currentLevel >= 3 && gameState.currentLevel <= 10) {
                 themeMessage = '👻 幻象迷宫：虚实难辨的幻境考验着你的感知';
             } else if (gameState.currentLevel >= 11 && gameState.currentLevel <= 20) {
@@ -1978,6 +2122,816 @@
         function seededRandom(seed) {
             const x = Math.sin(seed) * 10000;
             return x - Math.floor(x);
+        }
+        
+        // 显示对话框
+        function showDialogue(messages) {
+            const dialogueBox = document.createElement('div');
+            dialogueBox.className = 'dialogue-box';
+            
+            const title = document.createElement('div');
+            title.className = 'dialogue-title';
+            title.textContent = messages[0];
+            
+            const content = document.createElement('div');
+            content.className = 'dialogue-content';
+            
+            // 显示除标题外的所有消息
+            for (let i = 1; i < messages.length; i++) {
+                const line = document.createElement('div');
+                line.textContent = messages[i];
+                line.style.marginBottom = '8px';
+                content.appendChild(line);
+            }
+            
+            const continueBtn = document.createElement('button');
+            continueBtn.className = 'dialogue-continue';
+            continueBtn.textContent = '继续';
+            continueBtn.onclick = () => {
+                dialogueBox.remove();
+            };
+            
+            dialogueBox.appendChild(title);
+            dialogueBox.appendChild(content);
+            dialogueBox.appendChild(continueBtn);
+            
+            document.body.appendChild(dialogueBox);
+        }
+        
+        // 创建地雷场 - 第二关专用（迷宫式布局）
+        function createMineField() {
+            // 初始化关卡布局存储
+            if (!gameState.levelLayouts[gameState.currentLevel]) {
+                gameState.levelLayouts[gameState.currentLevel] = {
+                    staticTraps: [],
+                    movingTraps: []
+                };
+            }
+            
+            const gridSize = 40; // 网格大小
+            const cols = Math.floor(gameWidth / gridSize);
+            const rows = Math.floor(gameHeight / gridSize);
+            
+            console.log(`迷宫网格大小: ${cols}x${rows}`);
+            
+            // 创建迷宫地图 - true表示墙壁（地雷），false表示通道
+            const maze = Array(rows).fill().map(() => Array(cols).fill(true));
+            
+            // 固定布局：玩家在左上角，门在右下角
+            const safeStartX = 1; // 左上角
+            const safeStartY = 1;
+            const safeEndX = cols - 2; // 右下角
+            const safeEndY = rows - 2;
+            
+            // 保存终点位置到全局变量，供门位置更新使用
+            window.mazeEndPoint = { x: safeEndX, y: safeEndY };
+            
+            console.log(`迷宫尺寸: ${cols}x${rows}, 起点: (${safeStartX}, ${safeStartY}), 终点: (${safeEndX}, ${safeEndY})`);
+            
+            // 生成真正复杂的迷宫
+            function generateMaze() {
+                console.log('开始生成迷宫...');
+                
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    console.log(`迷宫生成尝试 ${attempts}/${maxAttempts}`);
+                    
+                    // 初始化：全部设为墙壁
+                    for (let y = 0; y < rows; y++) {
+                        for (let x = 0; x < cols; x++) {
+                            maze[y][x] = true;
+                        }
+                    }
+                    
+                    // 使用改进的深度优先搜索生成复杂迷宫
+                    const visited = Array(rows).fill().map(() => Array(cols).fill(false));
+                    const stack = [];
+                    
+                    // 从起点开始
+                    let currentX = safeStartX;
+                    let currentY = safeStartY;
+                    maze[currentY][currentX] = false;
+                    visited[currentY][currentX] = true;
+                    
+                    while (true) {
+                        // 获取未访问的邻居（距离为2的位置）
+                        const neighbors = [];
+                        let directions = [
+                            [0, -2], [2, 0], [0, 2], [-2, 0] // 上、右、下、左
+                        ];
+                        
+                        // 智能方向选择：创造复杂路径但避免简单底部通道
+                        if (currentY > rows * 0.7) {
+                            // 如果在底部30%区域，强烈优先向上和左右，避免向下
+                            directions = [[0, -2], [2, 0], [-2, 0]]; // 移除向下选项
+                        } else if (currentY > rows / 2) {
+                            // 如果在中下部分，优先向上和左右
+                            directions = [[0, -2], [2, 0], [-2, 0], [0, 2]];
+                        } else {
+                            // 如果在上半部分，平衡各个方向但稍微偏向右下
+                            directions = [[2, 0], [0, 2], [0, -2], [-2, 0]];
+                        }
+                        
+                        for (const [dx, dy] of directions) {
+                            const nx = currentX + dx;
+                            const ny = currentY + dy;
+                            
+                            if (nx >= 1 && nx < cols - 1 && ny >= 1 && ny < rows - 1 && !visited[ny][nx]) {
+                                neighbors.push([nx, ny, dx, dy]);
+                            }
+                        }
+                        
+                        if (neighbors.length > 0) {
+                            // 智能选择邻居，避免简单路径
+                            let selectedNeighbor;
+                            
+                            if (neighbors.length === 1) {
+                                selectedNeighbor = neighbors[0];
+                            } else {
+                                // 智能选择邻居：优先选择朝向终点但避免简单路径的方向
+                                const towardsEndNeighbors = neighbors.filter(([nx, ny, dx, dy]) => {
+                                    // 计算是否朝向终点方向
+                                    const towardsRight = dx > 0 && nx < safeEndX;
+                                    const towardsDown = dy > 0 && ny < safeEndY;
+                                    const towardsEnd = towardsRight || towardsDown;
+                                    
+                                    // 避免在底部区域创建水平通道
+                                    const inBottomArea = ny > rows * 0.8;
+                                    const isHorizontal = dy === 0;
+                                    const wouldCreateBottomChannel = inBottomArea && isHorizontal;
+                                    
+                                    return towardsEnd && !wouldCreateBottomChannel;
+                                });
+                                
+                                if (towardsEndNeighbors.length > 0) {
+                                    selectedNeighbor = towardsEndNeighbors[Math.floor(Math.random() * towardsEndNeighbors.length)];
+                                } else {
+                                    // 如果没有朝向终点的好选择，选择非底部通道的方向
+                                    const nonBottomNeighbors = neighbors.filter(([nx, ny, dx, dy]) => {
+                                        return !(dy === 0 && ny > rows * 0.8); // 避免底部水平通道
+                                    });
+                                    
+                                    if (nonBottomNeighbors.length > 0) {
+                                        selectedNeighbor = nonBottomNeighbors[Math.floor(Math.random() * nonBottomNeighbors.length)];
+                                    } else {
+                                        selectedNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                                    }
+                                }
+                            }
+                            
+                            const [nx, ny, dx, dy] = selectedNeighbor;
+                            
+                            // 打通到邻居的路径
+                            maze[currentY + dy/2][currentX + dx/2] = false;
+                            maze[ny][nx] = false;
+                            visited[ny][nx] = true;
+                            
+                            // 将当前位置压入栈
+                            stack.push([currentX, currentY]);
+                            currentX = nx;
+                            currentY = ny;
+                        } else if (stack.length > 0) {
+                            // 回溯
+                            [currentX, currentY] = stack.pop();
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 确保终点可达
+                    maze[safeEndY][safeEndX] = false;
+                    
+                    // 强制创建一条从起点到终点的复杂路径（作为保底）
+                    createGuaranteedPath(safeStartX, safeStartY, safeEndX, safeEndY);
+                    
+                    // 添加一些额外的连接，增加路径多样性（避免底部通道）
+                    const extraConnections = Math.floor(Math.random() * 6) + 3;
+                    for (let i = 0; i < extraConnections; i++) {
+                        const x = 2 + Math.floor(Math.random() * (cols - 4));
+                        // 避免在底部20%区域添加额外连接
+                        const y = 2 + Math.floor(Math.random() * (rows * 0.8 - 4));
+                        
+                        // 随机打通一些墙壁
+                        if (maze[y][x] && Math.random() < 0.5) {
+                            // 检查周围是否有通道
+                            const hasAdjacentPath = [
+                                [0, 1], [1, 0], [0, -1], [-1, 0]
+                            ].some(([dx, dy]) => {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                return nx >= 0 && nx < cols && ny >= 0 && ny < rows && !maze[ny][nx];
+                            });
+                            
+                            // 额外检查：不要创建长的水平通道
+                            const wouldCreateLongHorizontal = checkForLongHorizontalPath(x, y);
+                            
+                            if (hasAdjacentPath && !wouldCreateLongHorizontal) {
+                                maze[y][x] = false;
+                            }
+                        }
+                    }
+                    
+                    // 检查并移除可能的底部长通道
+                    removeBottomHorizontalPaths();
+                    
+                    // 检查连通性
+                    if (isPathExists(safeStartX, safeStartY, safeEndX, safeEndY)) {
+                        console.log(`迷宫生成成功！尝试次数: ${attempts}`);
+                        return; // 成功生成可达迷宫
+                    } else {
+                        console.log(`第${attempts}次尝试失败，起点到终点不连通，重新生成...`);
+                        // 如果不连通，强制创建路径
+                        if (attempts === maxAttempts) {
+                            console.log('达到最大尝试次数，强制创建连通路径');
+                            forceCreatePath(safeStartX, safeStartY, safeEndX, safeEndY);
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // 检查两点之间是否存在路径（BFS算法）
+            function isPathExists(startX, startY, endX, endY) {
+                const visited = Array(rows).fill().map(() => Array(cols).fill(false));
+                const queue = [[startX, startY]];
+                visited[startY][startX] = true;
+                
+                const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                
+                while (queue.length > 0) {
+                    const [x, y] = queue.shift();
+                    
+                    // 到达终点
+                    if (x === endX && y === endY) {
+                        return true;
+                    }
+                    
+                    // 检查四个方向
+                    for (const [dx, dy] of directions) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        
+                        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && 
+                            !visited[ny][nx] && !maze[ny][nx]) {
+                            visited[ny][nx] = true;
+                            queue.push([nx, ny]);
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            // 强制创建从起点到终点的路径
+            function forceCreatePath(startX, startY, endX, endY) {
+                console.log('强制创建路径...');
+                
+                // 首先确保终点绝对可达 - 清理更大范围
+                console.log('强制清理终点周围更大区域...');
+                for (let dx = -2; dx <= 2; dx++) {
+                    for (let dy = -2; dy <= 2; dy++) {
+                        const ex = endX + dx;
+                        const ey = endY + dy;
+                        
+                        if (ex >= 0 && ex < cols && ey >= 0 && ey < rows) {
+                            maze[ey][ex] = false;
+                            console.log(`强制清理终点: (${ex}, ${ey})`);
+                        }
+                    }
+                }
+                
+                // 使用A*算法找到最短路径并打通
+                const path = findPathAStar(startX, startY, endX, endY);
+                
+                if (path && path.length > 0) {
+                    // 打通路径上的所有点，并在路径周围留出空间
+                    for (const [x, y] of path) {
+                        maze[y][x] = false;
+                        // 在路径两侧也清理一些空间
+                        if (x > 0) maze[y][x-1] = false;
+                        if (x < cols-1) maze[y][x+1] = false;
+                    }
+                    console.log(`强制路径创建完成，路径长度: ${path.length}`);
+                } else {
+                    // 如果A*失败，使用简单的直线路径
+                    console.log('A*算法失败，使用曲折路径');
+                    createStraightPath(startX, startY, endX, endY);
+                }
+                
+                // 最后再次确保终点可达
+                ensureEndPointAccessible(endX, endY);
+            }
+            
+            // 确保终点绝对可达
+            function ensureEndPointAccessible(endX, endY) {
+                console.log('最终确保终点可达...');
+                
+                // 在终点周围创建十字形通道
+                const crossPaths = [
+                    [[endX-1, endY], [endX-2, endY]], // 左
+                    [[endX+1, endY], [endX+2, endY]], // 右
+                    [[endX, endY-1], [endX, endY-2]], // 上
+                    [[endX, endY+1], [endX, endY+2]]  // 下
+                ];
+                
+                for (const pathPair of crossPaths) {
+                    for (const [x, y] of pathPair) {
+                        if (x >= 0 && x < cols && y >= 0 && y < rows) {
+                            maze[y][x] = false;
+                        }
+                    }
+                }
+                
+                console.log('终点十字形通道创建完成');
+            }
+            
+            // A*寻路算法
+            function findPathAStar(startX, startY, endX, endY) {
+                const openSet = [{x: startX, y: startY, g: 0, h: 0, f: 0, parent: null}];
+                const closedSet = new Set();
+                
+                function heuristic(x, y) {
+                    return Math.abs(x - endX) + Math.abs(y - endY);
+                }
+                
+                while (openSet.length > 0) {
+                    // 找到f值最小的节点
+                    openSet.sort((a, b) => a.f - b.f);
+                    const current = openSet.shift();
+                    
+                    const currentKey = `${current.x},${current.y}`;
+                    if (closedSet.has(currentKey)) continue;
+                    closedSet.add(currentKey);
+                    
+                    // 到达终点
+                    if (current.x === endX && current.y === endY) {
+                        const path = [];
+                        let node = current;
+                        while (node) {
+                            path.unshift([node.x, node.y]);
+                            node = node.parent;
+                        }
+                        return path;
+                    }
+                    
+                    // 检查邻居
+                    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                    for (const [dx, dy] of directions) {
+                        const nx = current.x + dx;
+                        const ny = current.y + dy;
+                        const neighborKey = `${nx},${ny}`;
+                        
+                        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !closedSet.has(neighborKey)) {
+                            const g = current.g + 1;
+                            const h = heuristic(nx, ny);
+                            const f = g + h;
+                            
+                            openSet.push({
+                                x: nx, y: ny, g, h, f,
+                                parent: current
+                            });
+                        }
+                    }
+                }
+                
+                return null; // 没有找到路径
+            }
+            
+            // 创建复杂的曲折路径（避免简单直线）
+            function createStraightPath(startX, startY, endX, endY) {
+                console.log('创建复杂曲折路径...');
+                
+                let x = startX;
+                let y = startY;
+                maze[y][x] = false;
+                
+                // 创建曲折路径，避免简单的L形
+                const pathPoints = [];
+                
+                // 添加中间转折点，创造更复杂的路径
+                const midX1 = Math.floor((startX + endX) / 3);
+                const midY1 = Math.floor((startY + endY) / 3);
+                const midX2 = Math.floor((startX + endX) * 2 / 3);
+                const midY2 = Math.floor((startY + endY) * 2 / 3);
+                
+                // 随机选择路径方式
+                const pathType = Math.floor(Math.random() * 3);
+                
+                if (pathType === 0) {
+                    // 路径1: 先向右，再向下，再向右
+                    pathPoints.push([midX1, startY]);
+                    pathPoints.push([midX1, midY2]);
+                    pathPoints.push([endX, midY2]);
+                    pathPoints.push([endX, endY]);
+                } else if (pathType === 1) {
+                    // 路径2: 先向下，再向右，再向下
+                    pathPoints.push([startX, midY1]);
+                    pathPoints.push([midX2, midY1]);
+                    pathPoints.push([midX2, endY]);
+                    pathPoints.push([endX, endY]);
+                } else {
+                    // 路径3: 复杂Z字形路径
+                    pathPoints.push([midX1, startY]);
+                    pathPoints.push([midX1, midY1]);
+                    pathPoints.push([midX2, midY1]);
+                    pathPoints.push([midX2, endY]);
+                    pathPoints.push([endX, endY]);
+                }
+                
+                // 连接所有路径点
+                let currentX = startX;
+                let currentY = startY;
+                
+                for (const [targetX, targetY] of pathPoints) {
+                    // 水平移动
+                    while (currentX !== targetX) {
+                        maze[currentY][currentX] = false;
+                        currentX += (targetX > currentX) ? 1 : -1;
+                    }
+                    // 垂直移动
+                    while (currentY !== targetY) {
+                        maze[currentY][currentX] = false;
+                        currentY += (targetY > currentY) ? 1 : -1;
+                    }
+                    maze[currentY][currentX] = false;
+                }
+                
+                // 确保终点可达
+                maze[endY][endX] = false;
+                
+                console.log('复杂曲折路径创建完成');
+            }
+            
+            // 创建保证连通的复杂路径
+            function createGuaranteedPath(startX, startY, endX, endY) {
+                console.log('创建保证连通的复杂路径...');
+                
+                // 创建一条复杂的Z字形路径，避免简单的L形或直线
+                const pathPoints = [];
+                
+                // 计算中间转折点，创造复杂路径
+                const midX1 = Math.floor(startX + (endX - startX) * 0.3);
+                const midY1 = Math.floor(startY + (endY - startY) * 0.6); // 偏下一点
+                const midX2 = Math.floor(startX + (endX - startX) * 0.7);
+                const midY2 = Math.floor(startY + (endY - startY) * 0.3); // 偏上一点
+                
+                // 创建复杂的路径：起点 -> 中下 -> 右上 -> 终点
+                pathPoints.push([startX, startY]);
+                pathPoints.push([midX1, startY]); // 先向右
+                pathPoints.push([midX1, midY1]); // 再向下
+                pathPoints.push([midX2, midY1]); // 再向右
+                pathPoints.push([midX2, midY2]); // 向上
+                pathPoints.push([endX, midY2]); // 向右
+                pathPoints.push([endX, endY]); // 最后向下到终点
+                
+                // 连接所有路径点
+                for (let i = 0; i < pathPoints.length - 1; i++) {
+                    const [x1, y1] = pathPoints[i];
+                    const [x2, y2] = pathPoints[i + 1];
+                    
+                    // 连接两点之间的路径
+                    let currentX = x1;
+                    let currentY = y1;
+                    
+                    // 先水平移动
+                    while (currentX !== x2) {
+                        if (currentX >= 0 && currentX < cols && currentY >= 0 && currentY < rows) {
+                            maze[currentY][currentX] = false;
+                        }
+                        currentX += (x2 > currentX) ? 1 : -1;
+                    }
+                    
+                    // 再垂直移动
+                    while (currentY !== y2) {
+                        if (currentX >= 0 && currentX < cols && currentY >= 0 && currentY < rows) {
+                            maze[currentY][currentX] = false;
+                        }
+                        currentY += (y2 > currentY) ? 1 : -1;
+                    }
+                    
+                    // 确保终点也被标记
+                    if (currentX >= 0 && currentX < cols && currentY >= 0 && currentY < rows) {
+                        maze[currentY][currentX] = false;
+                    }
+                }
+                
+                console.log('保证连通的复杂路径创建完成');
+            }
+            
+            // 检查是否会创建长的水平通道
+            function checkForLongHorizontalPath(x, y) {
+                if (!maze[y][x]) return false; // 如果已经是通道，不检查
+                
+                let leftCount = 0;
+                let rightCount = 0;
+                
+                // 检查左侧连续通道
+                for (let i = x - 1; i >= 0 && !maze[y][i]; i--) {
+                    leftCount++;
+                }
+                
+                // 检查右侧连续通道
+                for (let i = x + 1; i < cols && !maze[y][i]; i++) {
+                    rightCount++;
+                }
+                
+                // 如果总长度超过迷宫宽度的30%，认为是长通道
+                return (leftCount + rightCount + 1) > cols * 0.3;
+            }
+            
+            // 移除底部的长水平通道
+            function removeBottomHorizontalPaths() {
+                const bottomThreshold = rows * 0.8; // 底部20%区域
+                
+                for (let y = Math.floor(bottomThreshold); y < rows; y++) {
+                    let consecutiveCount = 0;
+                    let startX = -1;
+                    
+                    for (let x = 0; x < cols; x++) {
+                        if (!maze[y][x]) { // 如果是通道
+                            if (startX === -1) startX = x;
+                            consecutiveCount++;
+                        } else {
+                            // 遇到墙壁，检查之前的连续通道
+                            if (consecutiveCount > cols * 0.4) { // 如果超过40%宽度
+                                // 随机封堵一些位置，打断长通道
+                                for (let i = startX; i < startX + consecutiveCount; i += 3) {
+                                    if (i !== safeStartX && i !== safeEndX) { // 不封堵起点终点
+                                        maze[y][i] = true;
+                                    }
+                                }
+                                console.log(`移除底部长通道: y=${y}, 长度=${consecutiveCount}`);
+                            }
+                            consecutiveCount = 0;
+                            startX = -1;
+                        }
+                    }
+                    
+                    // 检查行末的连续通道
+                    if (consecutiveCount > cols * 0.4) {
+                        for (let i = startX; i < startX + consecutiveCount; i += 3) {
+                            if (i !== safeStartX && i !== safeEndX) {
+                                maze[y][i] = true;
+                            }
+                        }
+                        console.log(`移除底部长通道(行末): y=${y}, 长度=${consecutiveCount}`);
+                    }
+                }
+            }
+            
+            // 确保起点到终点的连通性
+            function ensureConnectivity() {
+                // 使用BFS检查连通性
+                function isConnected(startX, startY, endX, endY) {
+                    const visited = Array(rows).fill().map(() => Array(cols).fill(false));
+                    const queue = [[startX, startY]];
+                    visited[startY][startX] = true;
+                    
+                    while (queue.length > 0) {
+                        const [x, y] = queue.shift();
+                        
+                        if (x === endX && y === endY) {
+                            return true;
+                        }
+                        
+                        const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                        for (const [dx, dy] of directions) {
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            
+                            if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && 
+                                !maze[ny][nx] && !visited[ny][nx]) {
+                                visited[ny][nx] = true;
+                                queue.push([nx, ny]);
+                            }
+                        }
+                    }
+                    return false;
+                }
+                
+                // 如果不连通，创建连接路径
+                if (!isConnected(safeStartX, safeStartY, safeEndX, safeEndY)) {
+                    console.log('迷宫不连通，创建连接路径...');
+                    
+                    // 使用A*算法创建最短路径
+                    const path = findPath(safeStartX, safeStartY, safeEndX, safeEndY);
+                    
+                    // 打通路径
+                    for (const [x, y] of path) {
+                        maze[y][x] = false;
+                        // 稍微扩宽路径
+                        if (Math.random() < 0.3) {
+                            const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                            const [dx, dy] = directions[Math.floor(Math.random() * directions.length)];
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            if (nx > 0 && nx < cols - 1 && ny > 0 && ny < rows - 1) {
+                                maze[ny][nx] = false;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // A*路径查找算法
+            function findPath(startX, startY, endX, endY) {
+                const openSet = [[startX, startY, 0, Math.abs(startX - endX) + Math.abs(startY - endY)]];
+                const cameFrom = new Map();
+                const gScore = new Map();
+                gScore.set(`${startX},${startY}`, 0);
+                
+                while (openSet.length > 0) {
+                    openSet.sort((a, b) => (a[2] + a[3]) - (b[2] + b[3]));
+                    const [x, y, g, h] = openSet.shift();
+                    
+                    if (x === endX && y === endY) {
+                        // 重建路径
+                        const path = [];
+                        let current = `${x},${y}`;
+                        while (current) {
+                            const [cx, cy] = current.split(',').map(Number);
+                            path.unshift([cx, cy]);
+                            current = cameFrom.get(current);
+                        }
+                        return path;
+                    }
+                    
+                    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                    for (const [dx, dy] of directions) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        
+                        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+                            const tentativeG = g + 1;
+                            const key = `${nx},${ny}`;
+                            
+                            if (!gScore.has(key) || tentativeG < gScore.get(key)) {
+                                cameFrom.set(key, `${x},${y}`);
+                                gScore.set(key, tentativeG);
+                                const h = Math.abs(nx - endX) + Math.abs(ny - endY);
+                                openSet.push([nx, ny, tentativeG, h]);
+                            }
+                        }
+                    }
+                }
+                
+                return [[startX, startY], [endX, endY]]; // 备用直线路径
+            }
+            
+            // 生成迷宫
+            generateMaze();
+            
+            // 最终验证连通性
+            if (isPathExists(safeStartX, safeStartY, safeEndX, safeEndY)) {
+                console.log('✅ 迷宫连通性验证通过！');
+                
+                // 计算并显示最短路径长度
+                const shortestPath = findPathAStar(safeStartX, safeStartY, safeEndX, safeEndY);
+                if (shortestPath) {
+                    console.log(`📏 最短路径长度: ${shortestPath.length} 步`);
+                }
+                
+                // 即使连通性通过，也要确保终点周围有足够空间
+                ensureEndPointAccessible(safeEndX, safeEndY);
+            } else {
+                console.error('❌ 迷宫连通性验证失败！强制修复...');
+                forceCreatePath(safeStartX, safeStartY, safeEndX, safeEndY);
+            }
+            
+            // 最终的最终验证
+            if (!isPathExists(safeStartX, safeStartY, safeEndX, safeEndY)) {
+                console.error('🚨 严重错误：强制修复后仍然不连通！');
+                // 创建最简单的直接路径
+                let x = safeStartX, y = safeStartY;
+                while (x !== safeEndX || y !== safeEndY) {
+                    maze[y][x] = false;
+                    if (x < safeEndX) x++;
+                    else if (x > safeEndX) x--;
+                    else if (y < safeEndY) y++;
+                    else if (y > safeEndY) y--;
+                }
+                maze[safeEndY][safeEndX] = false;
+                console.log('🔧 应急修复完成');
+            }
+            
+            // 确保起始点和终点周围有足够的空间和通道
+            console.log('清理起点和终点周围区域...');
+            
+            // 清理起点周围3x3区域
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const sx = safeStartX + dx;
+                    const sy = safeStartY + dy;
+                    
+                    if (sx >= 0 && sx < cols && sy >= 0 && sy < rows) {
+                        maze[sy][sx] = false;
+                        console.log(`清理起点周围: (${sx}, ${sy})`);
+                    }
+                }
+            }
+            
+            // 清理终点周围3x3区域
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const ex = safeEndX + dx;
+                    const ey = safeEndY + dy;
+                    
+                    if (ex >= 0 && ex < cols && ey >= 0 && ey < rows) {
+                        maze[ey][ex] = false;
+                        console.log(`清理终点周围: (${ex}, ${ey})`);
+                    }
+                }
+            }
+            
+            // 额外确保终点有至少一条通向外部的通道
+            const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // 右、下、左、上
+            let hasExternalConnection = false;
+            
+            for (const [dx, dy] of directions) {
+                const checkX = safeEndX + dx * 2;
+                const checkY = safeEndY + dy * 2;
+                
+                if (checkX >= 0 && checkX < cols && checkY >= 0 && checkY < rows) {
+                    // 创建通向外部的通道
+                    maze[safeEndY + dy][safeEndX + dx] = false;
+                    maze[checkY][checkX] = false;
+                    hasExternalConnection = true;
+                    console.log(`为终点创建外部连接: (${safeEndX + dx}, ${safeEndY + dy}) -> (${checkX}, ${checkY})`);
+                    break;
+                }
+            }
+            
+            if (!hasExternalConnection) {
+                console.warn('无法为终点创建外部连接，使用强制路径');
+            }
+            
+            // 获取玩家实际像素位置（统一声明）
+            const playerPixelX = gameState.player.x;
+            const playerPixelY = gameState.player.y;
+            const playerCenterX = playerPixelX + 20; // 玩家中心点
+            const playerCenterY = playerPixelY + 25;
+            const playerGridX = Math.floor(playerCenterX / gridSize);
+            const playerGridY = Math.floor(playerCenterY / gridSize);
+            
+            console.log(`玩家起始位置: 像素(${playerPixelX}, ${playerPixelY}), 中心(${playerCenterX}, ${playerCenterY}), 网格(${playerGridX}, ${playerGridY})`);
+            
+            // 确保玩家起始位置绝对安全
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const px = playerGridX + dx;
+                    const py = playerGridY + dy;
+                    
+                    if (px >= 0 && px < cols && py >= 0 && py < rows) {
+                        maze[py][px] = false;
+                        console.log(`清除玩家周围网格: (${px}, ${py})`);
+                    }
+                }
+            }
+            
+            // 根据迷宫地图放置地雷（墙壁）
+            let placedMines = 0;
+            
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (maze[y][x]) { // 如果是墙壁，放置地雷
+                        const mine = document.createElement('div');
+                        mine.className = 'maze-wall';
+                        mine.style.position = 'absolute';
+                        mine.style.left = (x * gridSize) + 'px';
+                        mine.style.top = (y * gridSize) + 'px';
+                        mine.style.width = gridSize + 'px';
+                        mine.style.height = gridSize + 'px';
+                        mine.style.backgroundColor = '#8B4513'; // 棕色墙壁
+                        mine.style.border = '1px solid #654321';
+                        mine.style.boxShadow = 'inset 2px 2px 4px rgba(0,0,0,0.3)';
+                        mine.dataset.isMine = 'true';
+                        mine.style.zIndex = '1';
+                        
+                        gameContainer.appendChild(mine);
+                        gameState.traps.push(mine);
+                        
+                        // 保存地雷布局信息
+                        gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                            className: 'maze-wall',
+                            left: x * gridSize,
+                            top: y * gridSize,
+                            width: gridSize,
+                            height: gridSize,
+                            isMine: true
+                        });
+                        
+                        placedMines++;
+                    }
+                }
+            }
+            
+            console.log(`第二关迷宫：生成了${placedMines}个墙壁，纯迷宫挑战`);
+            
+            // 迷宫生成完成后立即更新门的位置
+            updateDoorPosition();
         }
 
         // 创建特殊陷阱 - 根据关卡主题选择陷阱类型
@@ -2206,8 +3160,47 @@
         
         // 创建静态陷阱
         function createTraps(useExistingLayout = false) {
-            // 第一关没有任何陷阱
+            // 第一关没有任何陷阱 - 前台安全通道
             if (gameState.currentLevel === 1) {
+                return;
+            }
+            
+            // 第二关特殊处理 - 第一食堂地雷阵
+            if (gameState.currentLevel === 2) {
+                if (useExistingLayout && gameState.levelLayouts[gameState.currentLevel]) {
+                    // 重用现有地雷布局
+                    const layout = gameState.levelLayouts[gameState.currentLevel];
+                    
+                    // 获取玩家当前位置
+                    const playerPixelX = gameState.player.x;
+                    const playerPixelY = gameState.player.y;
+                    const playerSize = 30;
+                    
+                    for (const mineData of layout.staticTraps) {
+                        if (mineData.isMine && mineData.className === 'maze-wall') {
+                            // 只重建墙壁，不重建隐藏地雷
+                            const mine = document.createElement('div');
+                            mine.className = mineData.className;
+                            mine.style.position = 'absolute';
+                            mine.style.left = mineData.left + 'px';
+                            mine.style.top = mineData.top + 'px';
+                            mine.style.width = mineData.width + 'px';
+                            mine.style.height = mineData.height + 'px';
+                            mine.dataset.isMine = 'true';
+                            mine.style.zIndex = '1';
+                            
+                            // 迷宫墙壁样式
+                            mine.style.backgroundColor = '#8B4513';
+                            mine.style.border = '1px solid #654321';
+                            mine.style.boxShadow = 'inset 2px 2px 4px rgba(0,0,0,0.3)';
+                            
+                            gameContainer.appendChild(mine);
+                            gameState.traps.push(mine);
+                        }
+                    }
+                } else {
+                    createMineField();
+                }
                 return;
             }
             
@@ -2675,6 +3668,103 @@
             player.style.left = gameState.player.x + 'px';
             player.style.top = gameState.player.y + 'px';
         }
+        
+        // 更新门的位置
+        function updateDoorPosition() {
+            if (gameState.currentLevel === 2) {
+                // 第二关：门在迷宫终点，使用全局变量存储的终点位置
+                if (window.mazeEndPoint) {
+                    const gridSize = 40;
+                    const doorX = window.mazeEndPoint.x * gridSize;
+                    const doorY = window.mazeEndPoint.y * gridSize;
+                    
+                    door.style.right = 'auto';
+                    door.style.left = doorX + 'px';
+                    door.style.bottom = 'auto';
+                    door.style.top = doorY + 'px';
+                    
+                    console.log(`门位置更新: 网格(${window.mazeEndPoint.x}, ${window.mazeEndPoint.y}), 像素(${doorX}, ${doorY})`);
+                } else {
+                    // 如果没有终点信息，使用默认位置
+                    console.warn('没有迷宫终点信息，使用默认门位置');
+                    const gridSize = 40;
+                    const cols = Math.floor(gameWidth / gridSize);
+                    const rows = Math.floor(gameHeight / gridSize);
+                    const doorX = (cols - 2) * gridSize;
+                    const doorY = (rows - 2) * gridSize;
+                    
+                    door.style.right = 'auto';
+                    door.style.left = doorX + 'px';
+                    door.style.bottom = 'auto';
+                    door.style.top = doorY + 'px';
+                }
+            } else {
+                // 其他关卡：门在右侧
+                door.style.left = 'auto';
+                door.style.right = '20px';
+                door.style.top = 'auto';
+                door.style.bottom = '0';
+            }
+        }
+        
+        // 循环次数相关函数
+        function initLoopCounter() {
+            // 初始化当前关卡的循环次数
+            if (!gameState.levelLoopCounts[gameState.currentLevel]) {
+                gameState.levelLoopCounts[gameState.currentLevel] = 0;
+            }
+            gameState.loopCount = gameState.levelLoopCounts[gameState.currentLevel];
+            updateLoopCounterDisplay();
+        }
+        
+        function incrementLoopCount() {
+            // 增加循环次数
+            gameState.loopCount++;
+            gameState.levelLoopCounts[gameState.currentLevel] = gameState.loopCount;
+            updateLoopCounterDisplay();
+            
+            // 显示循环提示消息
+            if (gameState.currentLevel === 2) {
+                if (gameState.loopCount === 1) {
+                    showLoopMessage('🔄 开始循环！每次失败都是学习的机会');
+                } else if (gameState.loopCount === 5) {
+                    showLoopMessage('💪 第5次循环！你正在掌握迷宫的秘密');
+                } else if (gameState.loopCount === 10) {
+                    showLoopMessage('🎯 第10次循环！坚持就是胜利');
+                } else if (gameState.loopCount % 15 === 0) {
+                    showLoopMessage(`🌟 第${gameState.loopCount}次循环！永不放弃的精神值得敬佩`);
+                }
+            }
+        }
+        
+        function updateLoopCounterDisplay() {
+            // 更新循环次数显示
+            if (gameState.currentLevel === 2) {
+                loopCounterDisplay.style.display = 'inline';
+                loopCountDisplay.textContent = gameState.loopCount;
+            } else {
+                loopCounterDisplay.style.display = 'none';
+            }
+        }
+        
+        function showLoopMessage(message) {
+            // 显示循环相关的鼓励消息
+            messageDisplay.textContent = message;
+            messageDisplay.style.color = '#ff6b6b';
+            setTimeout(() => {
+                if (messageDisplay.textContent === message) {
+                    messageDisplay.textContent = '';
+                    messageDisplay.style.color = '';
+                }
+            }, 3000);
+        }
+        
+        function resetLoopCounter() {
+            // 重置当前关卡的循环次数（进入新关卡时调用）
+            gameState.loopCount = 0;
+            gameState.levelLoopCounts[gameState.currentLevel] = 0;
+            updateLoopCounterDisplay();
+        }
 
         // 处理特殊陷阱
         function handleSpecialTrap(trap) {
@@ -2881,7 +3971,7 @@
             }, 10000);
         }
 
-        // 检测碰撞
+        // 基于网格的碰撞检测
         function checkCollisions() {
             const playerRect = player.getBoundingClientRect();
             const doorRect = door.getBoundingClientRect();
@@ -2907,13 +3997,88 @@
                 return;
             }
             
+            // 对于第二关（迷宫关卡），使用网格碰撞检测
+            if (gameState.currentLevel === 2) {
+                checkGridCollisions();
+                return;
+            }
+            
+            // 其他关卡使用原有的像素碰撞检测
+            checkPixelCollisions();
+        }
+        
+        // 网格碰撞检测（用于迷宫关卡）
+        function checkGridCollisions() {
+            const gridSize = 40; // 与迷宫生成时的网格大小一致
+            
+            // 计算玩家占用的网格位置（玩家大小40x50，使用中心点）
+            const playerCenterX = gameState.player.x + 20; // 玩家宽度40，中心点+20
+            const playerCenterY = gameState.player.y + 25; // 玩家高度50，中心点+25
+            const playerGridX = Math.floor(playerCenterX / gridSize);
+            const playerGridY = Math.floor(playerCenterY / gridSize);
+            
+            console.log(`玩家位置: (${gameState.player.x}, ${gameState.player.y}), 网格: (${playerGridX}, ${playerGridY})`);
+            
+            // 只检查墙壁碰撞
+            for (const trap of gameState.traps) {
+                if (trap.className === 'maze-wall') {
+                    // 计算墙壁的网格位置
+                    const wallLeft = parseInt(trap.style.left);
+                    const wallTop = parseInt(trap.style.top);
+                    const wallGridX = Math.floor(wallLeft / gridSize);
+                    const wallGridY = Math.floor(wallTop / gridSize);
+                    
+                    // 如果玩家网格位置与墙壁网格位置重叠，则碰撞
+                    if (playerGridX === wallGridX && playerGridY === wallGridY) {
+                        console.log(`网格碰撞！玩家(${playerGridX}, ${playerGridY})撞墙(${wallGridX}, ${wallGridY})`);
+                        // 墙壁爆炸效果
+                        trap.classList.add('exploded');
+                        trap.style.background = 'radial-gradient(circle, #ff4444, #cc0000)';
+                        trap.style.border = '2px solid #ff0000';
+                        
+                        setTimeout(() => {
+                            gameOver();
+                        }, 200);
+                        return;
+                    }
+                }
+            }
+            
+            // 检查边界
+            if (gameState.player.x < 0 || gameState.player.x > gameWidth - 40 ||
+                gameState.player.y < 0 || gameState.player.y > gameHeight - 50) {
+                gameOver();
+                return;
+            }
+        }
+        
+        // 像素碰撞检测（用于其他关卡）
+        function checkPixelCollisions() {
+            const playerRect = player.getBoundingClientRect();
+            
             // 检查与静态陷阱的碰撞
             for (const trap of gameState.traps) {
                 const trapRect = trap.getBoundingClientRect();
+                
                 if (playerRect.right > trapRect.left && 
                     playerRect.left < trapRect.right && 
                     playerRect.bottom > trapRect.top && 
                     playerRect.top < trapRect.bottom) {
+                    
+                    // 处理地雷
+                    if (trap.dataset.isMine === 'true') {
+                        // 地雷爆炸效果
+                        trap.classList.add('exploded');
+                        trap.style.background = 'radial-gradient(circle, #ff4444, #cc0000)';
+                        trap.style.border = '2px solid #ff0000';
+                        trap.style.borderRadius = '50%';
+                        
+                        // 延迟游戏结束，让玩家看到爆炸效果
+                        setTimeout(() => {
+                            gameOver();
+                        }, 200);
+                        return;
+                    }
                     
                     // 处理特殊陷阱
                     if (trap.dataset.trapType) {
@@ -2977,10 +4142,20 @@
             }
             
             if (gameState.currentLevel === gameState.maxLevel) {
-                messageDisplay.textContent = '🌟 重生完成！你已打破循环，获得了真正的自由！法师重获新生！';
+                // 显示Zack
+                const zackDisplay = document.createElement('div');
+                zackDisplay.className = 'zack-display';
+                zackDisplay.textContent = '👨‍💼';
+                gameContainer.appendChild(zackDisplay);
+                
+                messageDisplay.textContent = '🎉 恭喜！你成功拯救了Zack！';
                 setTimeout(() => {
-                    messageDisplay.textContent = '循环已破，但冒险永不止步...选择任意关卡重温重生之路';
-                    updateProgressDisplay();
+                    messageDisplay.textContent = '👨‍💼 Zack: "谢谢你救了我！作为奖励，下一任CEO就是你了！"';
+                    setTimeout(() => {
+                        messageDisplay.textContent = '🏆 游戏完成！你可以重新挑战任意关卡';
+                        zackDisplay.remove();
+                        updateProgressDisplay();
+                    }, 3000);
                 }, 3000);
             } else {
                 const stageMessages = [
@@ -3012,6 +4187,11 @@
             if (gameState.gameOver) return;
             gameState.gameOver = true;
             
+            // 增加循环次数（仅在第二关）
+            if (gameState.currentLevel === 2) {
+                incrementLoopCount();
+            }
+            
             // 播放爆炸音效
             playExplosionSound();
             
@@ -3026,11 +4206,11 @@
             player.style.display = 'none';
             
             const deathMessages = [
-                '💫 循环重启...法师再次觉醒',
-                '🔄 时间倒流...重新来过',
-                '⚡ 重生之力激活...再次挑战',
-                '🌀 循环继续...永不放弃',
-                '🔥 从灰烬中重生...再来一次'
+                '💥 爆炸！循环重启...你又回到了起点',
+                '🔄 时间倒流...这已经是第17次循环了',
+                '⚡ 循环激活...继续拯救Zack的使命',
+                '🌀 又一次循环...Zack还在等你',
+                '🔥 从爆炸中重生...不能放弃！'
             ];
             const randomMessage = deathMessages[Math.floor(Math.random() * deathMessages.length)];
             messageDisplay.textContent = randomMessage;
@@ -3045,7 +4225,7 @@
         
         // 重新开始当前关卡
         function restartCurrentLevel() {
-            gameState.player = { x: 50, y: 250 };
+            // 先清除游戏状态
             gameState.traps = [];
             gameState.movingTraps = [];
             gameState.specialTraps = [];
@@ -3060,9 +4240,18 @@
             player.style.transform = '';
             
             // 清除之前的陷阱（包括特殊陷阱和特殊元素）
-            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .collectible, .key-item, .teleporter, .switch, .moving-platform, .timer-display').forEach(el => el.remove());
+            document.querySelectorAll('.trap, .spike, .moving-trap, .hidden-mine, .maze-wall, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .collectible, .key-item, .teleporter, .switch, .moving-platform, .timer-display').forEach(el => el.remove());
             
+            // 重置玩家位置（在清除陷阱之后）
+            if (gameState.currentLevel === 2) {
+                // 第二关：迷宫起点
+                gameState.player = { x: 40, y: 40 }; // 对应网格(1,1)
+            } else {
+                // 其他关卡：默认位置
+                gameState.player = { x: 50, y: 250 };
+            }
             updatePlayerPosition();
+            updateDoorPosition(); // 确保门位置正确
             
             // 重用现有的关卡布局
             levelDisplay.textContent = gameState.currentLevel;
@@ -3072,7 +4261,13 @@
             resetSpecialMechanics();
             setupSpecialMechanics();
             
-            createTraps(true); // 使用现有布局
+            // 重用现有布局，确保不重新生成
+            if (gameState.currentLevel === 2) {
+                // 第二关特殊处理，确保迷宫布局不变
+                createTraps(true); // 强制使用现有布局
+            } else {
+                createTraps(true); // 使用现有布局
+            }
             setupMovingTraps(true); // 使用现有布局
         }
 
@@ -3080,7 +4275,17 @@
         function nextLevel() {
             gameState.currentLevel++;
             saveProgress(); // 保存当前关卡进度
-            gameState.player = { x: 50, y: 250 };
+            
+            // 重置新关卡的循环计数器
+            resetLoopCounter();
+            
+            // 根据关卡设置玩家起始位置
+            if (gameState.currentLevel === 2) {
+                gameState.player = { x: 40, y: 40 }; // 迷宫起点
+            } else {
+                gameState.player = { x: 50, y: 250 }; // 默认位置
+            }
+            
             gameState.traps = [];
             gameState.movingTraps = [];
             gameState.specialTraps = [];
@@ -3096,7 +4301,7 @@
             player.style.transform = '';
             
             // 清除之前的陷阱（包括特殊陷阱和特殊元素）
-            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .collectible, .key-item, .teleporter, .switch, .moving-platform, .timer-display').forEach(el => el.remove());
+            document.querySelectorAll('.trap, .spike, .moving-trap, .hidden-mine, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .collectible, .key-item, .teleporter, .switch, .moving-platform, .timer-display').forEach(el => el.remove());
             
             updatePlayerPosition();
             setupLevel();
