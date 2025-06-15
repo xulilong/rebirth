@@ -2627,23 +2627,183 @@
             const seed = generateLevelSeed(gameState.currentLevel);
             let seedCounter = 5000; // 使用不同的起始值避免与陷阱冲突
             
-            for (let i = 0; i < 3; i++) {
-                const key = document.createElement('div');
-                key.className = 'key';
-                key.innerHTML = '🗝️';
+            // 等待一小段时间确保所有陷阱都已经添加到DOM
+            setTimeout(() => {
+                console.log('开始生成钥匙，需要生成3把');
                 
-                // 生成安全位置，避免与陷阱冲突
-                const position = generateSafePosition(30, 30, seed, seedCounter);
-                seedCounter = position.seedCounter;
+                // 预定义3个不同的钥匙位置，确保不重叠
+                const keyPositions = [
+                    { x: 150, y: 100 },
+                    { x: 300, y: 150 },
+                    { x: 450, y: 200 }
+                ];
                 
-                key.style.left = position.x + 'px';
-                key.style.top = position.y + 'px';
+                for (let i = 0; i < 3; i++) {
+                    const key = document.createElement('div');
+                    key.className = 'key';
+                    key.innerHTML = '🗝️';
+                    
+                    // 首先尝试生成安全位置
+                    let position = generateSafePositionForKey(30, 30, seed, seedCounter + i * 1000, i);
+                    
+                    // 如果生成的位置与已有钥匙重叠，使用预定义位置
+                    const existingKeys = gameState.keys;
+                    let positionConflict = false;
+                    for (const existingKey of existingKeys) {
+                        const existingX = parseInt(existingKey.style.left);
+                        const existingY = parseInt(existingKey.style.top);
+                        if (Math.abs(position.x - existingX) < 60 && Math.abs(position.y - existingY) < 60) {
+                            positionConflict = true;
+                            break;
+                        }
+                    }
+                    
+                    if (positionConflict) {
+                        position = keyPositions[i];
+                        console.log(`钥匙${i + 1}位置冲突，使用预定义位置: (${position.x}, ${position.y})`);
+                    }
+                    
+                    seedCounter = position.seedCounter || seedCounter + 100;
+                    
+                    key.style.left = position.x + 'px';
+                    key.style.top = position.y + 'px';
+                    
+                    console.log(`生成第${i + 1}把钥匙，位置: (${position.x}, ${position.y})`);
+                    
+                    // 不需要点击事件，通过碰撞检测收集
+                    
+                    gameContainer.appendChild(key);
+                    gameState.keys.push(key);
+                }
+                console.log(`钥匙生成完成，总共生成了${gameState.keys.length}把钥匙`);
+            }, 100); // 延迟100ms确保陷阱都已创建完成
+        }
+        
+        // 专门为钥匙生成安全位置的函数，使用更严格的检查
+        function generateSafePositionForKey(width, height, seed, seedCounter, keyIndex = 0, maxAttempts = 100) {
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const x = 100 + seededRandom(seed + seedCounter + attempt * 2) * (gameWidth - 200 - width);
+                const y = 50 + seededRandom(seed + seedCounter + attempt * 2 + 1) * (gameHeight - 100 - height);
                 
-                // 不需要点击事件，通过碰撞检测收集
-                
-                gameContainer.appendChild(key);
-                gameState.keys.push(key);
+                if (isPositionSafeForKey(x, y, width, height)) {
+                    return { x, y, seedCounter: seedCounter + attempt * 2 + 2 };
+                }
             }
+            
+            // 如果找不到安全位置，使用预定义的安全区域
+            const safeZones = [
+                { x: 120, y: 80 },
+                { x: gameWidth - 200, y: 80 },
+                { x: 120, y: gameHeight - 150 },
+                { x: gameWidth / 2 - 15, y: 80 },
+                { x: gameWidth / 2 - 15, y: gameHeight - 150 },
+                { x: 200, y: 120 },
+                { x: 300, y: 120 },
+                { x: 400, y: 120 }
+            ];
+            
+            for (const zone of safeZones) {
+                if (isPositionSafeForKey(zone.x, zone.y, width, height)) {
+                    console.log(`使用预定义安全区域: (${zone.x}, ${zone.y})`);
+                    return { x: zone.x, y: zone.y, seedCounter: seedCounter + maxAttempts * 2 };
+                }
+            }
+            
+            // 最后的备选位置 - 强制生成，不再检查冲突
+            // 使用钥匙索引确保每把钥匙有不同位置
+            const fallbackPositions = [
+                { x: 150, y: 100 },
+                { x: 300, y: 150 },
+                { x: 450, y: 200 },
+                { x: 200, y: 300 },
+                { x: 350, y: 320 }
+            ];
+            
+            const selectedPosition = fallbackPositions[keyIndex % fallbackPositions.length];
+            console.log(`使用强制备选位置 ${keyIndex}: (${selectedPosition.x}, ${selectedPosition.y})`);
+            return { x: selectedPosition.x, y: selectedPosition.y, seedCounter: seedCounter + maxAttempts * 2 };
+        }
+        
+        // 检查位置对钥匙是否安全（更严格的检查）
+        function isPositionSafeForKey(x, y, width, height, buffer = 35) {
+            const newRect = {
+                left: x - buffer,
+                right: x + width + buffer,
+                top: y - buffer,
+                bottom: y + height + buffer
+            };
+            
+            // 检查与出口的距离（确保出口周围有足够空间）
+            const doorRect = {
+                left: gameWidth - 80 - 60, // 出口左边界 - 更大缓冲
+                right: gameWidth - 20 + 60, // 出口右边界 + 更大缓冲
+                top: gameHeight - 100 - 60, // 出口顶部 - 更大缓冲
+                bottom: gameHeight + 60 // 出口底部 + 更大缓冲
+            };
+            
+            if (newRect.right > doorRect.left && newRect.left < doorRect.right &&
+                newRect.bottom > doorRect.top && newRect.top < doorRect.bottom) {
+                return false; // 与出口区域冲突
+            }
+            
+            // 检查与起始位置的距离（确保玩家起始位置安全）
+            const startRect = {
+                left: 50 - 80,
+                right: 50 + 40 + 80,
+                top: 250 - 80,
+                bottom: 250 + 50 + 80
+            };
+            
+            if (newRect.right > startRect.left && newRect.left < startRect.right &&
+                newRect.bottom > startRect.top && newRect.top < startRect.bottom) {
+                return false; // 与起始位置冲突
+            }
+            
+            // 检查与所有DOM中的陷阱的冲突
+            const allTraps = gameContainer.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap');
+            
+            for (const trap of allTraps) {
+                const trapRect = trap.getBoundingClientRect();
+                const containerRect = gameContainer.getBoundingClientRect();
+                const trapX = trapRect.left - containerRect.left;
+                const trapY = trapRect.top - containerRect.top;
+                const trapWidth = trapRect.width || 40;
+                const trapHeight = trapRect.height || 40;
+                
+                const existingRect = {
+                    left: trapX - buffer,
+                    right: trapX + trapWidth + buffer,
+                    top: trapY - buffer,
+                    bottom: trapY + trapHeight + buffer
+                };
+                
+                if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                    newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                    return false; // 与现有陷阱冲突
+                }
+            }
+            
+            // 检查与移动陷阱的冲突
+            for (const movingTrap of gameState.movingTraps) {
+                const trapX = movingTrap.x;
+                const trapY = movingTrap.y;
+                const trapWidth = 40;
+                const trapHeight = 40;
+                
+                const existingRect = {
+                    left: trapX - buffer,
+                    right: trapX + trapWidth + buffer,
+                    top: trapY - buffer,
+                    bottom: trapY + trapHeight + buffer
+                };
+                
+                if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                    newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                    return false; // 与移动陷阱冲突
+                }
+            }
+            
+            return true; // 位置安全
         }
         
         // 收集钥匙
@@ -3445,13 +3605,18 @@
         
         resetProgressBtn.addEventListener('click', () => {
             playClickSound();
-            if (confirm('确定要重置所有进度吗？这将删除您的所有游戏记录！')) {
+            if (confirm('确定要重置所有进度吗？这将删除您的所有游戏记录并刷新页面！')) {
                 resetProgress();
-                initGame();
-                messageDisplay.textContent = '进度已重置！';
-                setTimeout(() => {
-                    messageDisplay.textContent = '';
-                }, 2000);
+                // 清空所有缓存并强制刷新页面
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) {
+                            caches.delete(name);
+                        }
+                    });
+                }
+                // 强制刷新页面，清空所有状态
+                window.location.reload(true);
             }
         });
 
