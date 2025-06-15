@@ -24,6 +24,19 @@
             border: 3px solid #555;
             overflow: hidden;
         }
+        
+        #game-container.hell-mode {
+            background: linear-gradient(45deg, #1a0000, #330000, #1a0000, #330000);
+            background-size: 40px 40px;
+            animation: hellBackground 3s linear infinite;
+            border: 3px solid #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 0, 0.2);
+        }
+        
+        @keyframes hellBackground {
+            0% { background-position: 0px 0px; }
+            100% { background-position: 40px 40px; }
+        }
         #player {
             position: absolute;
             width: 40px;
@@ -869,10 +882,18 @@
             position: absolute;
             width: 40px;
             height: 40px;
-            background-color: #FF6347;
-            border: 2px solid #DC143C;
-            border-radius: 50%;
+            background-image: url('images/traps/invisible.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
+            opacity: 0.8;
+            animation: movingTrapFloat 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes movingTrapFloat {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(-5px) scale(1.05); }
         }
         
         /* 新的陷阱类型样式 */
@@ -1360,10 +1381,16 @@
 ⚠️ 终极挑战：哇，系统警报声此起彼伏！看来真的遇到大问题了，是时候展现真正的技术了！`
             },
             10: {
-                title: "👑 CEO办公室 - 拯救使命",
-                content: `CEO办公室！终于到了！这里就是传说中Zack被困的地方！
+                title: "🔥 地狱模式 - 终极挑战",
+                content: `⚠️ 警告：你即将进入地狱模式！这是最终的考验！
 
-🎯 拯救行动：好了，不能再感慨了！Zack就在这里等着我去救，冲鸭！`
+💀 CEO办公室已被恶魔化，空气中弥漫着危险的气息...
+
+🔥 这里的一切都变得更加危险和诡异，陷阱密布，危机四伏！
+
+👑 但是Zack就在这里等着你的拯救！只有真正的勇士才能通过这最后的试炼！
+
+🎯 最后的使命：准备好迎接你人生中最大的挑战了吗？`
             }
         };
 
@@ -2039,7 +2066,14 @@
             // 根据关卡调整玩家移动速度（高关卡稍微快一点以应对更多陷阱）
             playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
             
-
+            // 第10关激活地狱模式
+            if (gameState.currentLevel === 10) {
+                gameContainer.classList.add('hell-mode');
+                // 第10关玩家速度稍微提升以应对超高难度
+                playerSpeed = basePlayerSpeed + 4;
+            } else {
+                gameContainer.classList.remove('hell-mode');
+            }
             
             // 根据关卡设置陷阱（生成新布局）
             createTraps(false);
@@ -2225,8 +2259,10 @@
                 trapCount = 6 + (gameState.currentLevel - 3) * 4; // 第4-6关：10,14,18个陷阱
             } else if (gameState.currentLevel <= 8) {
                 trapCount = 18 + (gameState.currentLevel - 6) * 5; // 第7-8关：23,28个陷阱
+            } else if (gameState.currentLevel === 9) {
+                trapCount = 34; // 第9关：34个陷阱
             } else {
-                trapCount = 28 + (gameState.currentLevel - 8) * 6; // 第9-10关：34,40个陷阱
+                trapCount = 40; // 第10关：40个陷阱 (适度挑战)
             }
             
             // 初始化关卡布局存储
@@ -2237,21 +2273,21 @@
                 };
             }
             
-            // 先确保每关至少有3个隐形陷阱（从第2关开始）
+            // 先确保每关至少有足够的隐形陷阱（从第2关开始）
             let invisibleTrapCount = 0;
-            const minInvisibleTraps = gameState.currentLevel >= 2 ? 3 : 0;
+            const minInvisibleTraps = gameState.currentLevel >= 2 ? (gameState.currentLevel === 10 ? 6 : 3) : 0;
             
             for (let i = 0; i < trapCount; i++) {
                 const trap = document.createElement('div');
                 
                 // 重新调整陷阱类型比例，让游戏更有趣 (适配10关)
-                const specialChance = Math.min(0.1 + gameState.currentLevel * 0.05, 0.6); // 特殊陷阱比例快速提升
-                const spikeChance = Math.min(0.2 + gameState.currentLevel * 0.05, 0.6); // 尖刺比例
-                const trapChance = 0.3; // 方块陷阱比例
+                const specialChance = gameState.currentLevel === 10 ? 0.55 : Math.min(0.1 + gameState.currentLevel * 0.05, 0.6); // 第10关特殊陷阱比例55%
+                const spikeChance = gameState.currentLevel === 10 ? 0.25 : Math.min(0.2 + gameState.currentLevel * 0.05, 0.6); // 第10关尖刺比例25%
+                const trapChance = gameState.currentLevel === 10 ? 0.15 : 0.3; // 第10关方块陷阱比例15%
                 const randomValue = seededRandom(seed + seedCounter++);
                 
                 // 高关卡的陷阱更大
-                const sizeMultiplier = 1 + gameState.currentLevel * 0.02; // 更快增长
+                const sizeMultiplier = gameState.currentLevel === 10 ? 1.2 : (1 + gameState.currentLevel * 0.02); // 第10关陷阱尺寸1.2倍
                 
                 // 如果还没有足够的隐形陷阱，强制创建隐形陷阱
                 if (invisibleTrapCount < minInvisibleTraps && (i >= trapCount - (minInvisibleTraps - invisibleTrapCount) || randomValue < 0.3)) {
@@ -2377,7 +2413,7 @@
             } else if (gameState.currentLevel <= 9) {
                 movingTrapCount = 4 + (gameState.currentLevel - 7) * 2; // 第8-9关：6,8个移动陷阱
             } else {
-                movingTrapCount = 8 + (gameState.currentLevel - 9) * 3; // 第10关：11个移动陷阱
+                movingTrapCount = 12; // 第10关：12个移动陷阱 (适度动态挑战)
             }
             
             for (let i = 0; i < movingTrapCount; i++) {
@@ -2391,8 +2427,8 @@
                 const startY = position.y;
                 
                 // 根据关卡调整移动速度
-                const baseSpeed = 2 + gameState.currentLevel * 0.05; // 速度随关卡增加
-                const maxSpeed = Math.min(baseSpeed, 8); // 限制最大速度
+                const baseSpeed = gameState.currentLevel === 10 ? 3 : (2 + gameState.currentLevel * 0.05); // 第10关基础速度3
+                const maxSpeed = gameState.currentLevel === 10 ? 6 : Math.min(baseSpeed, 8); // 第10关最大速度6
                 const speedX = (seededRandom(seed + seedCounter++) - 0.5) * maxSpeed;
                 const speedY = (seededRandom(seed + seedCounter++) - 0.5) * maxSpeed;
                 
@@ -2419,7 +2455,7 @@
             
             // 开始移动陷阱，高关卡更新频率更高
             if (trapInterval) clearInterval(trapInterval);
-            const updateInterval = Math.max(15, 35 - gameState.currentLevel * 0.2); // 更新间隔随关卡减少
+            const updateInterval = gameState.currentLevel === 10 ? 18 : Math.max(15, 35 - gameState.currentLevel * 0.2); // 第10关18ms更新间隔
             trapInterval = setInterval(moveTraps, updateInterval);
         }
 
