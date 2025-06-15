@@ -263,6 +263,7 @@
             color: #ecf0f1;
             margin-bottom: 25px;
             text-align: left;
+            white-space: pre-line;
         }
 
         .dialog-btn {
@@ -533,12 +534,20 @@
             text-align: center;
             color: #bdc3c7;
             font-size: 1.1em;
+            max-width: 200px;
         }
 
         .value-icon {
             font-size: 2em;
             margin-bottom: 10px;
             display: block;
+        }
+
+        .value-desc {
+            font-size: 0.9em;
+            color: #95a5a6;
+            margin-top: 5px;
+            line-height: 1.3;
         }
 
         .continue-btn {
@@ -930,99 +939,83 @@
             }
         }
 
-        // 关卡位置信息
+        // 关卡位置信息 - MT公司探索之旅
         const levelLocations = {
-            1: "公司前台",
-            2: "第一食堂", 
-            3: "会议室-文明",
-            4: "会议室-乐高",
-            5: "会议室-回音群岛",
-            6: "第二食堂",
-            7: "HOP项目组",
-            8: "JUMP项目组",
-            9: "技术部",
-            10: "CEO办公室"
+            1: "🏢 公司前台 - 初来乍到",
+            2: "🍽️ 第一食堂 - 觅食时光", 
+            3: "📋 会议室-文明 - 文化洗礼",
+            4: "🧩 会议室-乐高 - 创意空间",
+            5: "🏝️ 会议室-回音群岛 - 思维碰撞",
+            6: "🍜 第二食堂 - 能量补给",
+            7: "💻 HOP项目组 - 技术前沿",
+            8: "🚀 JUMP项目组 - 敏捷开发",
+            9: "⚙️ 技术部核心 - 系统中枢",
+            10: "👑 CEO办公室 - 最终决战"
         };
 
-        // 关卡对话信息
+        // 关卡对话信息 - 深度剧情体验
         const levelDialogs = {
             1: {
-                title: "第3次循环开始！",
-                content: `你被困在了MT，这已经是你第3次循环了！！！
+                title: "🔄 时空循环的开始",
+                content: () => `欢迎来到Magic Tavern！咦？这种似曾相识的感觉...等等，这已经是第${loopCount}次循环了？！我是不是在做梦？还是昨晚加班太晚产生幻觉了？！
 
-你不知道发生了什么，但是你的直觉告诉你，一定有什么重要的任务等着你。
-
-不要问为什么，毕竟电视剧里一般都是这么演的。`
+🎮 任务提示：CEO Zack可能遇到了麻烦，需要你的帮助！
+💡 操作指南：用方向键控制角色移动，避开红色障碍物，到达绿色出口就能进入下一关！`
             },
             2: {
-                title: "冲向食堂！",
+                title: "🍽️ MT人的日常 - 干饭第一",
                 content: `循环？开什么玩笑？作为一个打工人，还是干饭重要！12点半了，冲！！！
 
-不管发生什么，先填饱肚子再说。毕竟，革命的本钱是身体！`
+🍜 关卡特色：在美食的诱惑中保持专注，不要被香味分散注意力！
+⚠️ 难度提升：出现了移动的障碍物！它们就像忙碌的服务员一样来回穿梭，小心别撞上！`
             },
             3: {
-                title: "会议室-文明",
-                content: `这里是文明会议室，墙上贴着各种企业文化标语。
+                title: "📋 企业文化的力量",
+                content: `文明会议室，墙上贴着企业文化标语，看起来很有精神！真诚、进取、负责、齐心协力...这些词我都认识，组合在一起就很有力量的感觉。
 
-"以客户为中心，以奋斗者为本"... 等等，现在不是读标语的时候！
-
-你感觉这里隐藏着什么重要信息，小心前进！`
+⚡ 小小挑战：会议室里的障碍物变多了，就像开会时突然冒出的新想法一样，需要灵活应对！`
             },
             4: {
-                title: "会议室-乐高",
-                content: `乐高会议室里摆满了各种乐高模型，充满了创意的气息。
+                title: "🧩 创意无限的乐高空间",
+                content: `乐高会议室！哇，这里的乐高模型好精致，一定花了不少心思！那个城堡模型...咦，这个结构怎么这么眼熟？该不会是按我们的系统架构搭的吧？
 
-这些积木仿佛在诉说着无数个创新的故事...
-
-但现在你需要专注于找到出路，创意稍后再欣赏！`
+🎨 游戏心得：就像搭乐高需要耐心一样，通过这些障碍也需要细心规划路线！`
             },
             5: {
-                title: "会议室-回音群岛",
-                content: `回音群岛会议室，这个名字总是让人想起远方的海岛。
+                title: "🏝️ 回音群岛的智慧碰撞",
+                content: `回音群岛会议室，这名字起得真有诗意！一听就知道是个有文化的人想出来的。墙上的海洋主题装饰画很漂亮，蓝色调看着就让人心情舒畅。"回音"这个概念也很有意思！
 
-墙上的装饰画描绘着蓝色的海洋和绿色的岛屿...
-
-但现在你被困在这个"群岛"中，必须找到通往下一站的"航线"！`
+🌪️ 策略升级：就像在岛屿间航行一样，需要找到最佳路径来应对这些越来越复杂的障碍！`
             },
             6: {
-                title: "第二食堂",
-                content: `又到了食堂！看来MT的员工真的很重视吃饭这件事。
+                title: "🍜 能量补给站 - 第二食堂",
+                content: `第二食堂！这里选择更多，人气也更旺！干饭干饭！！！
 
-这里比第一食堂更大，选择也更多。但是...
-
-现在不是品尝美食的时候，你必须继续前进寻找真相！`
+⚡ 活力满满：吃饱了果然精神百倍！不过这些障碍物好像也跟着"升级"了，挑战更大了！`
             },
             7: {
-                title: "HOP项目组",
-                content: `这里是HOP项目组的办公区域，到处都是代码和设计图。
+                title: "💻 HOP项目组 - 技术前沿",
+                content: `HOP项目组，大屏幕上各种花里胡哨的图表，看起来很厉害的样子，程序员们在疯狂敲键盘，不知道是在写代码还是在聊天摸鱼。
 
-屏幕上闪烁着各种数据和图表，显示着项目的进展...
-
-你感觉离真相越来越近了，但危险也在增加！`
+🚨 Bug警报：系统开始报警了！这些移动的障碍物该不会就是传说中的"线上Bug"吧？`
             },
             8: {
-                title: "JUMP项目组",
-                content: `JUMP项目组，从名字就能感受到这个团队的活力！
+                title: "🚀 JUMP项目组 - 敏捷开发",
+                content: `JUMP项目组！这名字一听就很有活力，充满了"跳跃"的感觉！
 
-墙上贴着"敏捷开发"、"快速迭代"的标语...
-
-看起来你也需要"JUMP"一下，快速通过这里的重重障碍！`
+🏃‍♂️ 速度挑战：在这种快节奏的环境下，我也要加快速度了！这些障碍物变化真快！`
             },
             9: {
-                title: "技术部核心区域",
-                content: `终于到了技术部的核心区域！这里是MT公司的技术心脏。
+                title: "⚙️ 技术部核心 - 系统中枢",
+                content: `技术部核心区域！这里就是MT的"大脑中枢"！嗡嗡作响的服务器们正在辛勤工作，就像永不停歇的心脏！
 
-服务器的嗡嗡声、键盘的敲击声、还有工程师们专注的神情...
-
-你感觉答案就在前方，但最后的挑战也即将到来！`
+⚠️ 终极挑战：哇，系统警报声此起彼伏！看来真的遇到大问题了，是时候展现真正的技术了！`
             },
             10: {
-                title: "CEO办公室 - 最终决战",
-                content: `这里就是CEO办公室，Zack被困的地方！
+                title: "👑 CEO办公室 - 拯救使命",
+                content: `CEO办公室！终于到了！这里就是传说中Zack被困的地方！
 
-豪华的装修、巨大的落地窗、还有那张标志性的办公桌...
-
-是时候完成你的使命了！拯救Zack，成为下一任CEO！`
+🎯 拯救行动：好了，不能再感慨了！Zack就在这里等着我去救，冲鸭！`
             }
         };
 
@@ -1099,9 +1092,9 @@
                     <div class="zack-success-content">
                         恭喜你！经过重重困难，你终于成功拯救了Zack！
                         <br><br>
-                        <strong>Zack:</strong> "太感谢你了！我被困在这个循环中好久了！你展现出了真正的领导力和勇气。"
+                        <strong>Zack:</strong> "太感谢你了！我被困在这个循环中好久了！你展现出了MT价值观中的'负责'和'进取'精神！"
                         <br><br>
-                        <strong>Zack:</strong> "从今天起，你就是MT公司的新任CEO！公司的未来就交给你了！"
+                        <strong>Zack:</strong> "从今天起，你就是Magic Tavern的新任CEO！让我们一起秉承'真诚、进取、负责、齐心协力'的理念，带领公司走向更美好的未来！"
                         <br><br>
                         🏆 <strong>成就解锁：</strong> 循环终结者 - 成功打破时间循环，拯救CEO！
                         <br>
@@ -1146,25 +1139,30 @@
                 <div class="mt-logo">MT</div>
                 <div class="ceo-title">👑 新任CEO就职典礼</div>
                 <div class="ceo-subtitle">
-                    欢迎加入MT公司领导团队！<br>
+                    欢迎加入Magic Tavern领导团队！<br>
+                    秉承"真诚、进取、负责、齐心协力"的价值观，<br>
                     让我们一起创造更美好的未来！
                 </div>
                 <div class="mt-values">
                     <div class="value-item">
-                        <span class="value-icon">🎯</span>
-                        <div>以客户为中心</div>
-                    </div>
-                    <div class="value-item">
-                        <span class="value-icon">💪</span>
-                        <div>以奋斗者为本</div>
+                        <span class="value-icon">💎</span>
+                        <div>真诚 Sincere</div>
+                        <div class="value-desc">实事求是，主动沟通</div>
                     </div>
                     <div class="value-item">
                         <span class="value-icon">🚀</span>
-                        <div>持续创新</div>
+                        <div>进取 Progressive</div>
+                        <div class="value-desc">持续学习，精益求精</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">🛡️</span>
+                        <div>负责 Reliable</div>
+                        <div class="value-desc">兢兢业业，勇于担当</div>
                     </div>
                     <div class="value-item">
                         <span class="value-icon">🤝</span>
-                        <div>合作共赢</div>
+                        <div>齐心协力 Team-oriented</div>
+                        <div class="value-desc">相互协助，大局为重</div>
                     </div>
                 </div>
                 <button class="continue-btn">开始CEO之旅！</button>
@@ -1241,7 +1239,7 @@
             
             // 显示重置完成信息
             setTimeout(() => {
-                messageDisplay.textContent = '🎉 恭喜成为MT公司CEO！游戏已重置，准备开始新的冒险！';
+                messageDisplay.textContent = '🎉 恭喜成为Magic Tavern CEO！秉承MT价值观，游戏已重置，准备开始新的冒险！';
                 setTimeout(() => {
                     messageDisplay.textContent = '欢迎来到拯救Zack - MT冒险！点击开始游戏！';
                 }, 3000);
@@ -1668,7 +1666,10 @@
             // 显示当前关卡的对话框
             const currentDialog = levelDialogs[gameState.currentLevel];
             if (currentDialog) {
-                showDialog(currentDialog.title, currentDialog.content);
+                const content = typeof currentDialog.content === 'function' 
+                    ? currentDialog.content() 
+                    : currentDialog.content;
+                showDialog(currentDialog.title, content);
             }
         }
 
@@ -1816,16 +1817,18 @@
             const seed = generateLevelSeed(gameState.currentLevel);
             let seedCounter = 0;
             
-            // 根据关卡数量递增难度 (适配10关)
+            // 优化的关卡难度曲线 - 渐进式挑战
             let trapCount;
-            if (gameState.currentLevel <= 3) {
-                trapCount = gameState.currentLevel * 2; // 第1-3关：2,4,6个陷阱
+            if (gameState.currentLevel === 1) {
+                trapCount = 0; // 第1关：新手友好，无陷阱
+            } else if (gameState.currentLevel <= 3) {
+                trapCount = (gameState.currentLevel - 1) * 3; // 第2-3关：3,6个陷阱
             } else if (gameState.currentLevel <= 6) {
-                trapCount = 6 + (gameState.currentLevel - 3) * 3; // 第4-6关：9,12,15个陷阱
+                trapCount = 6 + (gameState.currentLevel - 3) * 4; // 第4-6关：10,14,18个陷阱
             } else if (gameState.currentLevel <= 8) {
-                trapCount = 15 + (gameState.currentLevel - 6) * 4; // 第7-8关：19,23个陷阱
+                trapCount = 18 + (gameState.currentLevel - 6) * 5; // 第7-8关：23,28个陷阱
             } else {
-                trapCount = 23 + (gameState.currentLevel - 8) * 5; // 第9-10关：28,33个陷阱
+                trapCount = 28 + (gameState.currentLevel - 8) * 6; // 第9-10关：34,40个陷阱
             }
             
             // 初始化关卡布局存储
@@ -1943,16 +1946,18 @@
             const seed = generateLevelSeed(gameState.currentLevel);
             let seedCounter = 1000; // 使用不同的起始值避免与静态陷阱冲突
             
-            // 根据关卡递增移动陷阱数量 (适配10关)
+            // 优化的移动陷阱难度曲线
             let movingTrapCount;
-            if (gameState.currentLevel <= 2) {
-                movingTrapCount = 0; // 第1-2关：无移动陷阱
+            if (gameState.currentLevel <= 3) {
+                movingTrapCount = 0; // 第1-3关：无移动陷阱，专注学习基础
             } else if (gameState.currentLevel <= 5) {
-                movingTrapCount = Math.floor((gameState.currentLevel - 2) / 2); // 第3-5关：1,1,2个移动陷阱
-            } else if (gameState.currentLevel <= 8) {
-                movingTrapCount = 2 + (gameState.currentLevel - 5); // 第6-8关：3,4,5个移动陷阱
+                movingTrapCount = gameState.currentLevel - 3; // 第4-5关：1,2个移动陷阱
+            } else if (gameState.currentLevel <= 7) {
+                movingTrapCount = 2 + (gameState.currentLevel - 5); // 第6-7关：3,4个移动陷阱
+            } else if (gameState.currentLevel <= 9) {
+                movingTrapCount = 4 + (gameState.currentLevel - 7) * 2; // 第8-9关：6,8个移动陷阱
             } else {
-                movingTrapCount = 5 + (gameState.currentLevel - 8) * 2; // 第9-10关：7,9个移动陷阱
+                movingTrapCount = 8 + (gameState.currentLevel - 9) * 3; // 第10关：11个移动陷阱
             }
             
             for (let i = 0; i < movingTrapCount; i++) {
