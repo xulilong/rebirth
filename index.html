@@ -603,51 +603,63 @@
         /* 新的陷阱类型样式 */
         .invisible-trap {
             position: absolute;
-            background-color: rgba(128, 128, 128, 0.1);
-            border: 2px dashed rgba(128, 128, 128, 0.3);
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/invisible.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
+            opacity: 0;
             transition: opacity 0.3s ease;
         }
         
         .invisible-trap.revealed {
-            background-color: rgba(105, 105, 105, 0.8);
-            border: 2px solid #696969;
+            opacity: 0.8;
         }
         
         .teleport-trap {
             position: absolute;
             width: 50px;
             height: 50px;
-            background: radial-gradient(circle, #9C27B0, #673AB7);
-            border-radius: 50%;
+            background-image: url('images/traps/teleport.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
-            animation: teleportPulse 2s ease-in-out infinite;
+            animation: teleportSpin 2s linear infinite;
         }
         
-        @keyframes teleportPulse {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.2); opacity: 1; }
+        @keyframes teleportSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .hunter-trap {
             position: absolute;
-            width: 35px;
-            height: 35px;
-            background-color: #FF4500;
-            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/hunter.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
-            border: 3px solid #FF6347;
             animation: hunterGlow 1s ease-in-out infinite alternate;
         }
         
         @keyframes hunterGlow {
-            0% { box-shadow: 0 0 5px #FF4500; }
-            100% { box-shadow: 0 0 15px #FF4500, 0 0 25px #FF4500; }
+            0% { filter: drop-shadow(0 0 5px #FF4500); }
+            100% { filter: drop-shadow(0 0 15px #FF4500); }
         }
         
         .blink-trap {
             position: absolute;
-            background-color: #00BCD4;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/blink.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: blinkTrap 3s ease-in-out infinite;
         }
@@ -662,9 +674,10 @@
             position: absolute;
             width: 60px;
             height: 60px;
-            background: radial-gradient(circle, rgba(0,0,0,0.8), rgba(0,0,0,0.3));
-            border: 3px solid #333;
-            border-radius: 50%;
+            background-image: url('images/traps/gravity.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: gravityPull 2s ease-in-out infinite;
         }
@@ -676,23 +689,24 @@
         
         .split-trap {
             position: absolute;
-            width: 45px;
-            height: 45px;
-            background-color: #32CD32;
-            border: 2px solid #228B22;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/split.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
-            border-radius: 10px;
-            transform: rotate(45deg);
         }
         
         .mirror-trap {
             position: absolute;
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #C0C0C0, #808080);
-            border-radius: 50%;
+            background-image: url('images/traps/mirror.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
-            border: 2px solid #999;
             animation: mirrorShine 2s linear infinite;
         }
         
@@ -705,23 +719,27 @@
             position: absolute;
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #00E5FF, #0277BD);
-            border-radius: 50%;
+            background-image: url('images/traps/freeze.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: freezeEffect 1.5s ease-in-out infinite;
         }
         
         @keyframes freezeEffect {
-            0%, 100% { transform: scale(1); filter: hue-rotate(0deg); }
-            50% { transform: scale(0.9); filter: hue-rotate(90deg); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.9); }
         }
         
         .bounce-trap {
             position: absolute;
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #FF1493, #FF69B4);
-            border-radius: 50%;
+            background-image: url('images/traps/bounce.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: bounceEffect 1s ease-in-out infinite;
         }
@@ -735,8 +753,10 @@
             position: absolute;
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            border-radius: 50%;
+            background-image: url('images/traps/shrink.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: shrinkEffect 2s ease-in-out infinite;
         }
@@ -750,8 +770,10 @@
             position: absolute;
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #00FF00, #32CD32);
-            border-radius: 50%;
+            background-image: url('images/traps/speed.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: speedEffect 0.5s linear infinite;
         }
@@ -765,8 +787,10 @@
             position: absolute;
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #8A2BE2, #9370DB);
-            border-radius: 50%;
+            background-image: url('images/traps/clone.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             z-index: 2;
             animation: cloneEffect 1.5s ease-in-out infinite;
         }
@@ -774,6 +798,31 @@
         @keyframes cloneEffect {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* 钥匙样式 */
+        .key {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            animation: keyFloat 2s ease-in-out infinite;
+            cursor: pointer;
+            filter: drop-shadow(0 0 8px #FFD700);
+        }
+        
+        @keyframes keyFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+        
+        .key:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 12px #FFD700);
         }
         
         /* 爆炸特效 */
@@ -851,6 +900,7 @@
         第 <span id="level">1</span> 关 
         <span id="progress-info">(最高记录: 第 <span id="max-level">1</span> 关)</span>
         <span id="loop-info">🔄 第 <span id="loop-count">3</span> 次循环</span>
+        <span id="key-info" style="display: none;">🗝️ 钥匙: <span id="key-count">0/3</span></span>
     </div>
     <div class="location-info">
         📍 当前位置: <span id="location">公司前台</span>
@@ -887,6 +937,9 @@
             traps: [],
             movingTraps: [],
             specialTraps: [], // 特殊陷阱数组
+            keys: [], // 当前关卡的钥匙
+            collectedKeys: 0, // 已收集的钥匙数量
+            requiredKeys: 0, // 需要收集的钥匙数量
             playerFrozen: false, // 玩家是否被冰冻
             freezeEndTime: 0, // 冰冻结束时间
             levelLayouts: {} // 存储每关的陷阱布局
@@ -973,18 +1026,21 @@
                 title: "📋 企业文化的力量",
                 content: `文明会议室，墙上贴着企业文化标语，看起来很有精神！真诚、进取、负责、齐心协力...这些词我都认识，组合在一起就很有力量的感觉。
 
+🗝️ 新任务：咦？会议室里散落着一些金色的钥匙！看起来很重要的样子，我需要收集3把钥匙才能进入下一关！
 ⚡ 小小挑战：会议室里的障碍物变多了，就像开会时突然冒出的新想法一样，需要灵活应对！`
             },
             4: {
                 title: "🧩 创意无限的乐高空间",
                 content: `乐高会议室！哇，这里的乐高模型好精致，一定花了不少心思！那个城堡模型...咦，这个结构怎么这么眼熟？该不会是按我们的系统架构搭的吧？
 
+🗝️ 继续收集：这里也有3把钥匙需要收集！看来这些钥匙对拯救Zack很重要！
 🎨 游戏心得：就像搭乐高需要耐心一样，通过这些障碍也需要细心规划路线！`
             },
             5: {
                 title: "🏝️ 回音群岛的智慧碰撞",
                 content: `回音群岛会议室，这名字起得真有诗意！一听就知道是个有文化的人想出来的。墙上的海洋主题装饰画很漂亮，蓝色调看着就让人心情舒畅。"回音"这个概念也很有意思！
 
+🗝️ 最后收集：这是最后一个需要收集钥匙的房间了！收集完这3把钥匙，我就能继续前进拯救Zack！
 🌪️ 策略升级：就像在岛屿间航行一样，需要找到最佳路径来应对这些越来越复杂的障碍！`
             },
             6: {
@@ -1026,6 +1082,8 @@
         const locationDisplay = document.getElementById('location');
         const messageDisplay = document.getElementById('message');
         const loopCountDisplay = document.getElementById('loop-count');
+        const keyInfoDisplay = document.getElementById('key-info');
+        const keyCountDisplay = document.getElementById('key-count');
         const gameContainer = document.getElementById('game-container');
         const player = document.getElementById('player');
         const door = document.getElementById('door');
@@ -1608,12 +1666,22 @@
             gameState.player = { x: 50, y: 250 };
             gameState.traps = [];
             gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
             
             messageDisplay.textContent = '';
             nextBtn.classList.add('hidden');
             
-            // 清除之前的陷阱
-            document.querySelectorAll('.trap, .spike, .moving-trap').forEach(el => el.remove());
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的所有陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
             
             updatePlayerPosition();
             setupLevel();
@@ -1632,6 +1700,12 @@
             gameState.player = { x: 50, y: 250 };
             gameState.traps = [];
             gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
             
             messageDisplay.textContent = '';
             nextBtn.classList.add('hidden');
@@ -1639,12 +1713,16 @@
             // 确保关卡选择器是隐藏的
             levelSelectModal.classList.add('hidden');
             
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的所有陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
+            
             updatePlayerPosition();
             setupLevel();
             updateProgressDisplay();
-            
-            // 清除之前的陷阱
-            document.querySelectorAll('.trap, .spike, .moving-trap').forEach(el => el.remove());
         }
 
         // 设置当前关卡
@@ -1657,11 +1735,16 @@
             // 根据关卡调整玩家移动速度（高关卡稍微快一点以应对更多陷阱）
             playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
             
+
+            
             // 根据关卡设置陷阱（生成新布局）
             createTraps(false);
             
             // 设置移动陷阱（生成新布局）
             setupMovingTraps(false);
+            
+            // 创建钥匙（仅在第3、4、5关）
+            createKeys();
             
             // 显示当前关卡的对话框
             const currentDialog = levelDialogs[gameState.currentLevel];
@@ -1690,6 +1773,15 @@
             const typeIndex = Math.floor(seededRandom(seed + seedCounter++) * specialTypes.length);
             const trapType = specialTypes[typeIndex];
             
+            const result = createSpecificTrap(trap, trapType, seed, seedCounter, sizeMultiplier);
+            return {
+                seedCounter: result,
+                trapType: trapType
+            };
+        }
+        
+        // 创建指定类型的特殊陷阱
+        function createSpecificTrap(trap, trapType, seed, seedCounter, sizeMultiplier) {
             const baseSize = 40;
             const width = baseSize * sizeMultiplier;
             const height = baseSize * sizeMultiplier;
@@ -1839,6 +1931,10 @@
                 };
             }
             
+            // 先确保每关至少有3个隐形陷阱（从第2关开始）
+            let invisibleTrapCount = 0;
+            const minInvisibleTraps = gameState.currentLevel >= 2 ? 3 : 0;
+            
             for (let i = 0; i < trapCount; i++) {
                 const trap = document.createElement('div');
                 
@@ -1851,9 +1947,17 @@
                 // 高关卡的陷阱更大
                 const sizeMultiplier = 1 + gameState.currentLevel * 0.02; // 更快增长
                 
-                if (randomValue < specialChance && gameState.currentLevel >= 2) {
+                // 如果还没有足够的隐形陷阱，强制创建隐形陷阱
+                if (invisibleTrapCount < minInvisibleTraps && (i >= trapCount - (minInvisibleTraps - invisibleTrapCount) || randomValue < 0.3)) {
+                    seedCounter = createSpecificTrap(trap, 'invisible', seed, seedCounter, sizeMultiplier);
+                    invisibleTrapCount++;
+                } else if (randomValue < specialChance && gameState.currentLevel >= 2) {
                     // 创建特殊陷阱（从第2关开始，更早出现）
-                    seedCounter = createSpecialTrap(trap, seed, seedCounter, sizeMultiplier);
+                    const createdType = createSpecialTrap(trap, seed, seedCounter, sizeMultiplier);
+                    seedCounter = createdType.seedCounter;
+                    if (createdType.trapType === 'invisible') {
+                        invisibleTrapCount++;
+                    }
                 } else if (randomValue < specialChance + spikeChance) {
                     // 尖刺陷阱（优先级提高）
                     trap.className = 'spike';
@@ -2024,6 +2128,93 @@
         function updatePlayerPosition() {
             player.style.left = gameState.player.x + 'px';
             player.style.top = gameState.player.y + 'px';
+        }
+        
+        // 创建钥匙
+        function createKeys() {
+            // 只在第3、4、5关生成钥匙
+            if (gameState.currentLevel < 3 || gameState.currentLevel > 5) {
+                gameState.requiredKeys = 0;
+                keyInfoDisplay.style.display = 'none';
+                return;
+            }
+            
+            gameState.requiredKeys = 3;
+            gameState.collectedKeys = 0;
+            gameState.keys = [];
+            keyInfoDisplay.style.display = 'inline';
+            updateKeyDisplay();
+            
+            const seed = generateLevelSeed(gameState.currentLevel);
+            let seedCounter = 5000; // 使用不同的起始值避免与陷阱冲突
+            
+            for (let i = 0; i < 3; i++) {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.innerHTML = '🗝️';
+                
+                // 使用种子生成固定位置
+                const left = 150 + seededRandom(seed + seedCounter++) * (gameWidth - 300);
+                const top = 50 + seededRandom(seed + seedCounter++) * (gameHeight - 150);
+                
+                key.style.left = left + 'px';
+                key.style.top = top + 'px';
+                
+                // 不需要点击事件，通过碰撞检测收集
+                
+                gameContainer.appendChild(key);
+                gameState.keys.push(key);
+            }
+        }
+        
+        // 收集钥匙
+        function collectKey(keyElement) {
+            if (gameState.gameOver) return;
+            
+            // 播放收集音效
+            playClickSound();
+            
+            // 移除钥匙
+            keyElement.remove();
+            gameState.keys = gameState.keys.filter(k => k !== keyElement);
+            gameState.collectedKeys++;
+            
+            // 更新显示
+            updateKeyDisplay();
+            
+            // 显示收集提示
+            messageDisplay.textContent = `🗝️ 收集到钥匙！(${gameState.collectedKeys}/${gameState.requiredKeys})`;
+            setTimeout(() => {
+                if (messageDisplay.textContent.includes('收集到钥匙')) {
+                    messageDisplay.textContent = '';
+                }
+            }, 1500);
+            
+            // 检查是否收集完毕
+            if (gameState.collectedKeys >= gameState.requiredKeys) {
+                messageDisplay.textContent = '✨ 所有钥匙收集完毕！现在可以进入下一关了！';
+                setTimeout(() => {
+                    if (messageDisplay.textContent.includes('所有钥匙收集完毕')) {
+                        messageDisplay.textContent = '';
+                    }
+                }, 3000);
+            }
+        }
+        
+        // 更新钥匙显示
+        function updateKeyDisplay() {
+            if (gameState.requiredKeys > 0) {
+                keyCountDisplay.textContent = `${gameState.collectedKeys}/${gameState.requiredKeys}`;
+            }
+        }
+        
+        // 检查钥匙收集条件
+        function checkKeyRequirement() {
+            // 只在第3、4、5关检查钥匙
+            if (gameState.currentLevel >= 3 && gameState.currentLevel <= 5) {
+                return gameState.collectedKeys >= gameState.requiredKeys;
+            }
+            return true; // 其他关卡不需要钥匙
         }
 
         // 处理特殊陷阱
@@ -2279,6 +2470,19 @@
                 }
             }
             
+            // 检查与钥匙的碰撞
+            for (let i = gameState.keys.length - 1; i >= 0; i--) {
+                const key = gameState.keys[i];
+                const keyRect = key.getBoundingClientRect();
+                if (playerRect.right > keyRect.left && 
+                    playerRect.left < keyRect.right && 
+                    playerRect.bottom > keyRect.top && 
+                    playerRect.top < keyRect.bottom) {
+                    collectKey(key);
+                    break; // 一次只收集一把钥匙
+                }
+            }
+            
             // 检查边界
             if (gameState.player.x < 0 || gameState.player.x > gameWidth - 40 ||
                 gameState.player.y < 0 || gameState.player.y > gameHeight - 50) {
@@ -2291,6 +2495,18 @@
         function levelComplete() {
             // 防止重复调用
             if (gameState.gameOver) return;
+            
+            // 检查钥匙收集条件
+            if (!checkKeyRequirement()) {
+                messageDisplay.textContent = `🗝️ 还需要收集 ${gameState.requiredKeys - gameState.collectedKeys} 把钥匙才能进入下一关！`;
+                setTimeout(() => {
+                    if (messageDisplay.textContent.includes('还需要收集')) {
+                        messageDisplay.textContent = '';
+                    }
+                }, 3000);
+                return;
+            }
+            
             gameState.gameOver = true;
             
             // 播放过关音效
@@ -2367,6 +2583,9 @@
             gameState.traps = [];
             gameState.movingTraps = [];
             gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
             gameState.gameOver = false;
             gameState.playerFrozen = false;
             gameState.freezeEndTime = 0;
@@ -2377,8 +2596,8 @@
             player.style.filter = '';
             player.style.transform = '';
             
-            // 清除之前的陷阱（包括特殊陷阱）
-            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone').forEach(el => el.remove());
+            // 清除之前的陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
             
             updatePlayerPosition();
             
@@ -2387,6 +2606,7 @@
             playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
             createTraps(true); // 使用现有布局
             setupMovingTraps(true); // 使用现有布局
+            createKeys(); // 重新创建钥匙
         }
 
         // 下一关
@@ -2397,6 +2617,9 @@
             gameState.traps = [];
             gameState.movingTraps = [];
             gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
             gameState.gameOver = false;  // 重置游戏状态
             gameState.playerFrozen = false;
             gameState.freezeEndTime = 0;
@@ -2408,8 +2631,8 @@
             player.style.filter = '';
             player.style.transform = '';
             
-            // 清除之前的陷阱（包括特殊陷阱）
-            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone').forEach(el => el.remove());
+            // 清除之前的陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
             
             updatePlayerPosition();
             setupLevel();
@@ -2422,17 +2645,20 @@
         function updatePlayerMovement() {
             if (gameState.gameOver || gameState.playerFrozen) return;
             
+            // 第7、8、9关方向键反转
+            const isReversedLevel = gameState.currentLevel >= 7 && gameState.currentLevel <= 9;
+            
             if (keys.ArrowUp) {
-                gameState.player.y -= playerSpeed;
+                gameState.player.y += isReversedLevel ? playerSpeed : -playerSpeed;
             }
             if (keys.ArrowDown) {
-                gameState.player.y += playerSpeed;
+                gameState.player.y += isReversedLevel ? -playerSpeed : playerSpeed;
             }
             if (keys.ArrowLeft) {
-                gameState.player.x -= playerSpeed;
+                gameState.player.x += isReversedLevel ? playerSpeed : -playerSpeed;
             }
             if (keys.ArrowRight) {
-                gameState.player.x += playerSpeed;
+                gameState.player.x += isReversedLevel ? -playerSpeed : playerSpeed;
             }
             
             updatePlayerPosition();
@@ -2459,14 +2685,22 @@
                 
                 switch(trapType) {
                     case 'invisible':
-                        // 隐形陷阱：玩家靠近时显现
+                        // 隐形陷阱：玩家非常靠近时才显现，远离时重新隐藏
                         const distance = Math.sqrt(
                             Math.pow(playerRect.left - trapRect.left, 2) + 
                             Math.pow(playerRect.top - trapRect.top, 2)
                         );
-                        if (distance < 80 && trap.dataset.revealed === 'false') {
-                            trap.dataset.revealed = 'true';
-                            trap.classList.add('revealed');
+                        if (distance < 80) {
+                            if (trap.dataset.revealed === 'false') {
+                                trap.dataset.revealed = 'true';
+                                trap.classList.add('revealed');
+                            }
+                        } else if (distance > 100) {
+                            // 玩家远离时重新隐藏
+                            if (trap.dataset.revealed === 'true') {
+                                trap.dataset.revealed = 'false';
+                                trap.classList.remove('revealed');
+                            }
                         }
                         break;
                         

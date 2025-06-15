@@ -1,0 +1,27 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bounceGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#FF69B4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF1493;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#DC143C;stop-opacity:0.8" />
+    </radialGradient>
+    <filter id="bounceGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- 弹簧球主体 -->
+  <circle cx="20" cy="20" r="12" fill="url(#bounceGrad)" stroke="#FF1493" stroke-width="2" filter="url(#bounceGlow)"/>
+  <!-- 弹跳轨迹线 -->
+  <path d="M20 32 Q15 28, 20 24 Q25 20, 20 16 Q15 12, 20 8" fill="none" stroke="#FF69B4" stroke-width="2" opacity="0.7"/>
+  <path d="M20 32 Q25 28, 20 24 Q15 20, 20 16 Q25 12, 20 8" fill="none" stroke="#FF1493" stroke-width="1.5" opacity="0.5"/>
+  <!-- 高光效果 -->
+  <ellipse cx="16" cy="16" rx="3" ry="4" fill="#FFFFFF" opacity="0.6"/>
+  <circle cx="18" cy="18" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <!-- 弹跳指示箭头 -->
+  <path d="M20 6 L18 10 L22 10 Z" fill="#FF1493" opacity="0.8"/>
+  <path d="M20 34 L18 30 L22 30 Z" fill="#FF1493" opacity="0.8"/>
+</svg> 

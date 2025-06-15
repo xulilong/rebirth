@@ -1,0 +1,27 @@
+<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="portalGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#9C27B0;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#673AB7;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#3F51B5;stop-opacity:0.6" />
+    </radialGradient>
+    <filter id="portalGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- 外圈 -->
+  <circle cx="25" cy="25" r="22" fill="none" stroke="url(#portalGrad)" stroke-width="3" filter="url(#portalGlow)"/>
+  <!-- 中圈 -->
+  <circle cx="25" cy="25" r="16" fill="none" stroke="url(#portalGrad)" stroke-width="2" opacity="0.8"/>
+  <!-- 内圈 -->
+  <circle cx="25" cy="25" r="10" fill="none" stroke="url(#portalGrad)" stroke-width="2" opacity="0.6"/>
+  <!-- 中心点 -->
+  <circle cx="25" cy="25" r="4" fill="url(#portalGrad)" opacity="0.9"/>
+  <!-- 漩涡线条 -->
+  <path d="M25 3 Q35 15, 25 25 Q15 35, 25 47" fill="none" stroke="#E1BEE7" stroke-width="2" opacity="0.7"/>
+  <path d="M47 25 Q35 35, 25 25 Q15 15, 3 25" fill="none" stroke="#E1BEE7" stroke-width="2" opacity="0.7"/>
+</svg> 

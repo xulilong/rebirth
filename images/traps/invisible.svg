@@ -1,0 +1,22 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- 幽灵身体 -->
+  <path d="M20 8 C12 8, 8 12, 8 20 C8 24, 8 28, 8 32 L12 28 L16 32 L20 28 L24 32 L28 28 L32 32 C32 28, 32 24, 32 20 C32 12, 28 8, 20 8 Z" 
+        fill="rgba(200,200,200,0.8)" 
+        stroke="rgba(150,150,150,0.9)" 
+        stroke-width="1" 
+        filter="url(#glow)"/>
+  <!-- 眼睛 -->
+  <circle cx="16" cy="18" r="2" fill="rgba(100,100,100,0.9)"/>
+  <circle cx="24" cy="18" r="2" fill="rgba(100,100,100,0.9)"/>
+  <!-- 嘴巴 -->
+  <ellipse cx="20" cy="24" rx="3" ry="2" fill="rgba(100,100,100,0.7)"/>
+</svg> 
