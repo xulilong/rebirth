@@ -742,6 +742,50 @@
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
         }
 
+        /* 名字输入框样式 */
+        .name-input-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(52, 73, 94, 0.3);
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+        }
+
+        .name-input-container label {
+            display: block;
+            color: #FFD700;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #player-name {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 16px;
+            font-size: 1.1em;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        #player-name:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        #player-name::placeholder {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
         /* CEO就职仪式动画 */
         .ceo-ceremony-overlay {
             position: fixed;
@@ -817,6 +861,30 @@
         @keyframes subtitleFadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+
+        .ceo-welcome {
+            font-size: 1.3em;
+            color: #e74c3c;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            border: 2px solid #e74c3c;
+            animation: welcomeFadeIn 1.5s ease-out 1.5s both;
+            text-align: center;
+            max-width: 700px;
+        }
+
+        @keyframes welcomeFadeIn {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .fireworks {
@@ -1562,6 +1630,13 @@
                         <br><br>
                         <strong>Zack:</strong> "从今天起，你就是Magic Tavern的新任CEO！让我们一起秉承'真诚、进取、负责、齐心协力'的理念，带领公司走向更美好的未来！"
                         <br><br>
+                        <strong>Zack:</strong> "对了，能告诉我你的名字吗？我想在就职典礼上正式介绍你！"
+                        <br><br>
+                        <div class="name-input-container">
+                            <label for="player-name">请输入您的姓名：</label>
+                            <input type="text" id="player-name" placeholder="输入您的姓名" maxlength="20" />
+                        </div>
+                        <br>
                         🏆 <strong>成就解锁：</strong> 循环终结者 - 成功打破时间循环，拯救CEO！
                         <br>
                         👑 <strong>新身份：</strong> MT公司CEO
@@ -1587,27 +1662,47 @@
             };
             testImg.src = 'images/zack.jpeg';
             
-            const btn = overlay.querySelector('.zack-success-btn');
-            btn.addEventListener('click', () => {
-                document.body.removeChild(overlay);
-                // 显示CEO就职仪式
-                showCEOCeremony();
+            // 自动聚焦到输入框
+            const nameInput = overlay.querySelector('#player-name');
+            setTimeout(() => {
+                nameInput.focus();
+            }, 500);
+            
+            // 支持回车键确认
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleCEOAcceptance();
+                }
             });
+            
+            const btn = overlay.querySelector('.zack-success-btn');
+            btn.addEventListener('click', handleCEOAcceptance);
+            
+            function handleCEOAcceptance() {
+                const playerName = nameInput.value.trim() || '勇敢的冒险者';
+                document.body.removeChild(overlay);
+                // 显示CEO就职仪式，传入玩家姓名
+                showCEOCeremony(playerName);
+            }
         }
 
         // 显示CEO就职仪式
-        function showCEOCeremony() {
+        function showCEOCeremony(playerName = '勇敢的冒险者') {
             const overlay = document.createElement('div');
             overlay.className = 'ceo-ceremony-overlay';
             
             overlay.innerHTML = `
                 <div class="fireworks"></div>
                 <div class="mt-logo">MT</div>
-                <div class="ceo-title">👑 新任CEO就职典礼</div>
+                <div class="ceo-title">👑 ${playerName} CEO就职典礼</div>
                 <div class="ceo-subtitle">
-                    欢迎加入Magic Tavern领导团队！<br>
+                    热烈欢迎 <strong>${playerName}</strong> 加入Magic Tavern领导团队！<br>
                     秉承"真诚、进取、负责、齐心协力"的价值观，<br>
                     让我们一起创造更美好的未来！
+                </div>
+                <div class="ceo-welcome">
+                    🎊 <strong>Zack:</strong> "各位同事，让我们热烈欢迎我们的新任CEO - ${playerName}！"<br>
+                    👏 <strong>全体员工:</strong> "欢迎 ${playerName} CEO！"
                 </div>
                 <div class="mt-values">
                     <div class="value-item">
@@ -1631,7 +1726,7 @@
                         <div class="value-desc">相互协助，大局为重</div>
                     </div>
                 </div>
-                <button class="continue-btn">开始CEO之旅！</button>
+                <button class="continue-btn">${playerName} 开始CEO之旅！</button>
             `;
             
             document.body.appendChild(overlay);
@@ -1645,13 +1740,13 @@
             const btn = overlay.querySelector('.continue-btn');
             btn.addEventListener('click', () => {
                 document.body.removeChild(overlay);
-                // 重置所有游戏数据和缓存
-                resetAllGameData();
+                // 重置所有游戏数据和缓存，传入玩家姓名
+                resetAllGameData(playerName);
             });
         }
 
         // 重置所有游戏数据和缓存
-        function resetAllGameData() {
+        function resetAllGameData(playerName = '勇敢的冒险者') {
             // 清除所有本地存储数据
             localStorage.removeItem('wizardGame_currentLevel');
             localStorage.removeItem('wizardGame_maxLevel');
@@ -1705,7 +1800,7 @@
             
             // 显示重置完成信息
             setTimeout(() => {
-                messageDisplay.textContent = '🎉 恭喜成为Magic Tavern CEO！秉承MT价值观，游戏已重置，准备开始新的冒险！';
+                messageDisplay.textContent = `🎉 恭喜 ${playerName} 成为Magic Tavern CEO！秉承MT价值观，游戏已重置，准备开始新的冒险！`;
                 setTimeout(() => {
                     messageDisplay.textContent = '欢迎来到拯救Zack - MT冒大险！点击开始游戏！';
                 }, 3000);
