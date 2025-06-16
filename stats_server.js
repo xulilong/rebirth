@@ -9,7 +9,20 @@ const PORT = process.env.PORT || 3001;
 // 中间件
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// 提供静态文件服务（游戏文件）
+app.use(express.static('.', {
+    index: 'index.html',
+    setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html');
+        } else if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
 
 // 统计数据文件路径
 const STATS_FILE = path.join(__dirname, 'server_stats.json');
