@@ -222,11 +222,15 @@
         <div class="auth-section">
             <h3>管理员验证</h3>
             <p style="margin: 15px 0; color: #666;">请输入管理员密钥以查看统计数据</p>
-            <input type="password" id="adminKey" class="auth-input" placeholder="输入管理员密钥" value="zack_admin_2024">
+            <input type="password" id="adminKey" class="auth-input" placeholder="输入管理员密钥">
             <button onclick="loadStats()" class="btn" id="loadBtn">查看统计数据</button>
         </div>
         
         <div class="stats-container" id="statsContainer">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #333;">📊 统计数据面板</h2>
+                <button onclick="logout()" class="btn" style="background: #dc3545; padding: 8px 16px; font-size: 14px;">退出登录</button>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card blue">
                     <div class="stat-value" id="totalPlayers">-</div>
@@ -310,6 +314,9 @@
                 
                 displayStats(data);
                 statsContainer.style.display = 'block';
+                
+                // 隐藏认证区域
+                document.querySelector('.auth-section').style.display = 'none';
                 
             } catch (error) {
                 console.error('加载统计数据失败:', error);
@@ -398,6 +405,22 @@
         async function refreshStats() {
             if (currentStats) {
                 await loadStats();
+            }
+        }
+        
+        function logout() {
+            // 显示认证区域
+            document.querySelector('.auth-section').style.display = 'block';
+            // 隐藏统计容器
+            document.getElementById('statsContainer').style.display = 'none';
+            // 清空密码输入框
+            document.getElementById('adminKey').value = '';
+            // 清空当前统计数据
+            currentStats = null;
+            // 移除可能存在的错误消息
+            const existingError = document.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
             }
         }
         

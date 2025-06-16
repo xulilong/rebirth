@@ -500,7 +500,7 @@ app.get('/api/admin/stats', async (req, res) => {
         const { adminKey } = req.query;
         
         // 简单的管理员验证
-        if (adminKey !== 'zack_admin_2024') {
+        if (adminKey !== '123456') {
             return res.status(401).json({ error: '无权限访问' });
         }
         
