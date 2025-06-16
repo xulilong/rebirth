@@ -2511,7 +2511,11 @@
         // 显示排行榜
         async function showLeaderboard() {
             try {
-                const response = await fetch('/api/leaderboard?limit=10');
+                // 使用后端服务器地址
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? '/api/leaderboard?limit=10'
+                    : 'https://rebirth-gyuv.onrender.com/api/leaderboard?limit=10';
+                const response = await fetch(apiUrl);
                 const result = await response.json();
                 
                 if (!result.success) {

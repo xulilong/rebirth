@@ -406,7 +406,9 @@
     <button class="refresh-btn" onclick="refreshStats()" title="刷新数据">🔄</button>
     
     <script>
-        const STATS_SERVER_URL = window.location.origin;
+        const STATS_SERVER_URL = window.location.hostname === 'xulilong.github.io' 
+                            ? 'https://rebirth-gyuv.onrender.com'
+            : window.location.origin;
         let currentStats = null;
         
         async function loadStats() {
