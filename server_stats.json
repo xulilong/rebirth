@@ -1,20 +1,44 @@
 {
-  "totalPlayers": 2,
-  "totalGames": 0,
-  "totalLevelsCompleted": 2,
-  "totalKeysCollected": 0,
-  "totalCEOPromotions": 0,
+  "totalPlayers": 9,
+  "totalGames": 1,
+  "totalLevelsCompleted": 31,
+  "totalKeysCollected": 43,
+  "totalCEOPromotions": 2,
   "dailyStats": {
     "2025-06-15": {
-      "players": 2,
-      "games": 0,
-      "levels": 1,
-      "keys": 0,
-      "ceoPromotions": 0
+      "players": 8,
+      "games": 1,
+      "levels": 31,
+      "keys": 44,
+      "ceoPromotions": 2
     }
   },
   "levelStats": {
-    "1": 1,
+    "1": 4,
+    "2": 3,
+    "3": 3,
+    "4": 3,
+    "5": 3,
+    "6": 3,
+    "7": 3,
+    "8": 3,
+    "9": 3,
+    "10": 3
+  },
+  "levelAttempts": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0,
+    "10": 0
+  },
+  "levelAverageAttempts": {
+    "1": 0,
     "2": 0,
     "3": 0,
     "4": 0,
@@ -26,5 +50,5 @@
     "10": 0
   },
   "sessions": [],
-  "lastUpdated": "2025-06-16T04:55:40.298Z"
+  "lastUpdated": "2025-06-16T06:12:28.233Z"
 }

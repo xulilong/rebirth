@@ -210,6 +210,119 @@
         .refresh-btn:hover {
             transform: scale(1.1);
         }
+        
+        .leaderboard {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .leaderboard-item.rank-1 {
+            border-left-color: #ffd700;
+            background: linear-gradient(135deg, #fff9e6, #ffffff);
+        }
+        
+        .leaderboard-item.rank-2 {
+            border-left-color: #c0c0c0;
+            background: linear-gradient(135deg, #f5f5f5, #ffffff);
+        }
+        
+        .leaderboard-item.rank-3 {
+            border-left-color: #cd7f32;
+            background: linear-gradient(135deg, #fdf2e9, #ffffff);
+        }
+        
+        .rank-number {
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .rank-1 .rank-number {
+            color: #ffd700;
+        }
+        
+        .rank-2 .rank-number {
+            color: #c0c0c0;
+        }
+        
+        .rank-3 .rank-number {
+            color: #cd7f32;
+        }
+        
+        .player-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .player-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .level-death-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .level-death-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #dc3545;
+            text-align: center;
+        }
+        
+        .level-death-number {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .level-death-avg {
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .level-death-count {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .empty-leaderboard {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -270,6 +383,16 @@
                 <h4 style="margin-top: 25px;">🎯 各关卡完成情况</h4>
                 <div class="level-stats" id="levelStats">
                     <!-- 动态生成关卡统计 -->
+                </div>
+                
+                <h4 style="margin-top: 25px;">🏆 通关排行榜 (前10名)</h4>
+                <div class="leaderboard" id="leaderboard">
+                    <!-- 动态生成排行榜 -->
+                </div>
+                
+                <h4 style="margin-top: 25px;">💀 各关卡平均死亡次数</h4>
+                <div class="level-death-stats" id="levelDeathStats">
+                    <!-- 动态生成关卡死亡统计 -->
                 </div>
                 
                 <h4 style="margin-top: 25px;">📅 每日统计</h4>
@@ -377,6 +500,66 @@
                     <div class="level-count">${count}</div>
                 `;
                 levelStatsContainer.appendChild(levelItem);
+            }
+            
+            // 更新排行榜
+            const leaderboardContainer = document.getElementById('leaderboard');
+            leaderboardContainer.innerHTML = '';
+            
+            const leaderboard = stats.leaderboard || [];
+            if (leaderboard.length === 0) {
+                leaderboardContainer.innerHTML = '<div class="empty-leaderboard">暂无通关玩家数据</div>';
+            } else {
+                leaderboard.forEach(player => {
+                    const leaderboardItem = document.createElement('div');
+                    leaderboardItem.className = `leaderboard-item rank-${player.rank}`;
+                    
+                    const completedDate = new Date(player.completedAt).toLocaleDateString('zh-CN');
+                    const completionTime = player.completionTimeMinutes ? `${player.completionTimeMinutes}分钟` : '未知';
+                    
+                    leaderboardItem.innerHTML = `
+                        <div class="rank-number">${player.rank}</div>
+                        <div class="player-info">
+                            <div class="player-name">${player.playerName}</div>
+                            <div class="player-stats">
+                                <span>💀 ${player.totalDeaths} 次死亡</span>
+                                <span>⏱️ ${completionTime}</span>
+                                <span>📅 ${completedDate}</span>
+                            </div>
+                        </div>
+                    `;
+                    leaderboardContainer.appendChild(leaderboardItem);
+                });
+            }
+            
+            // 更新关卡死亡统计
+            const levelDeathStatsContainer = document.getElementById('levelDeathStats');
+            levelDeathStatsContainer.innerHTML = '';
+            
+            const levelDeathStats = stats.levelDeathStats || {};
+            if (Object.keys(levelDeathStats).length === 0) {
+                levelDeathStatsContainer.innerHTML = '<div class="empty-leaderboard">暂无关卡死亡统计数据</div>';
+            } else {
+                for (let i = 1; i <= 10; i++) {
+                    const levelData = levelDeathStats[i.toString()];
+                    const levelDeathItem = document.createElement('div');
+                    levelDeathItem.className = 'level-death-item';
+                    
+                    if (levelData) {
+                        levelDeathItem.innerHTML = `
+                            <div class="level-death-number">第${i}关</div>
+                            <div class="level-death-avg">${levelData.averageDeaths}</div>
+                            <div class="level-death-count">${levelData.playerCount} 人通过</div>
+                        `;
+                    } else {
+                        levelDeathItem.innerHTML = `
+                            <div class="level-death-number">第${i}关</div>
+                            <div class="level-death-avg">-</div>
+                            <div class="level-death-count">0 人通过</div>
+                        `;
+                    }
+                    levelDeathStatsContainer.appendChild(levelDeathItem);
+                }
             }
             
             // 更新每日统计

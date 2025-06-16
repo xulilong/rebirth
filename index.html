@@ -293,6 +293,15 @@
             background-color: #7B1FA2;
         }
         
+        /* 排行榜按钮样式 */
+        #leaderboard-btn {
+            background-color: #FF5722;
+        }
+        
+        #leaderboard-btn:hover {
+            background-color: #E64A19;
+        }
+        
         /* 响应式设计 - 小屏幕适配 */
         @media screen and (max-width: 850px) {
             body {
@@ -781,6 +790,142 @@
             border-color: #FFD700;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
             transform: scale(1.02);
+        }
+
+        /* 排行榜弹窗样式 */
+        .leaderboard-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .leaderboard-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            border: 3px solid #FF5722;
+        }
+
+        .leaderboard-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #FF5722;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .leaderboard-list {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: rgba(52, 73, 94, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(52, 73, 94, 0.5);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.rank-1 {
+            border-left-color: #FFD700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+        }
+
+        .leaderboard-item.rank-2 {
+            border-left-color: #C0C0C0;
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.05));
+        }
+
+        .leaderboard-item.rank-3 {
+            border-left-color: #CD7F32;
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.05));
+        }
+
+        .leaderboard-rank {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ecf0f1;
+            min-width: 30px;
+        }
+
+        .leaderboard-rank.rank-1 { color: #FFD700; }
+        .leaderboard-rank.rank-2 { color: #C0C0C0; }
+        .leaderboard-rank.rank-3 { color: #CD7F32; }
+
+        .leaderboard-name {
+            flex: 1;
+            font-size: 1.1em;
+            color: #ecf0f1;
+            margin: 0 15px;
+            font-weight: 500;
+        }
+
+        .leaderboard-deaths {
+            font-size: 1em;
+            color: #e74c3c;
+            font-weight: bold;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .leaderboard-empty {
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+            padding: 40px 20px;
+            font-size: 1.1em;
+        }
+
+        .leaderboard-close-btn {
+            background: linear-gradient(45deg, #FF5722, #E64A19);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .leaderboard-close-btn:hover {
+            background: linear-gradient(45deg, #E64A19, #FF5722);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         #player-name::placeholder {
@@ -1466,8 +1611,9 @@
         <button id="restart-btn">重新开始当前关</button>
         <button id="next-btn" class="hidden">下一关</button>
         <button id="level-select-btn">选择关卡</button>
-        <button id="sound-toggle-btn">🔊 音效</button>
-        <button id="music-toggle-btn">🎵 音乐</button>
+                        <button id="sound-toggle-btn">🔊 音效</button>
+                <button id="music-toggle-btn">🎵 音乐</button>
+                <button id="leaderboard-btn">🏆 排行榜</button>
         <button id="reset-progress-btn">重置进度</button>
     </div>
     <div id="level-select" class="hidden">
@@ -1619,10 +1765,16 @@
                 setTimeout(() => this.sendStats('game-start'), 0);
             },
 
-            // 追踪关卡完成（异步非阻塞）
-            trackLevelComplete(level) {
+            // 追踪关卡尝试（异步非阻塞）
+            trackLevelAttempt(level, attemptCount) {
                 if (!this.enabled) return;
-                setTimeout(() => this.sendStats('level-complete', { level }), 0);
+                setTimeout(() => this.sendStats('level-attempt', { level, attemptCount }), 0);
+            },
+
+            // 追踪关卡完成（异步非阻塞）
+            trackLevelComplete(level, attemptCount) {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('level-complete', { level, attemptCount }), 0);
             },
 
             // 追踪钥匙收集（异步非阻塞）
@@ -1635,6 +1787,17 @@
             trackCEOPromotion() {
                 if (!this.enabled) return;
                 setTimeout(() => this.sendStats('ceo-promotion'), 0);
+            },
+
+            // 更新玩家记录（异步非阻塞）
+            updatePlayerRecord(level, deaths, playerName = null, isCompleted = false) {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('player-record', { 
+                    level, 
+                    deaths, 
+                    playerName, 
+                    isCompleted 
+                }), 0);
             }
         };
 
@@ -1805,6 +1968,10 @@
         let playerSpeed = 8;
         let animationFrame;
         let trapInterval;
+        
+        // 玩家记录追踪
+        let levelDeaths = {}; // 记录每关的死亡次数
+        let currentLevelDeaths = 0; // 当前关卡的死亡次数
         
         // 动态调整游戏区域大小
         function updateGameDimensions() {
@@ -1983,6 +2150,23 @@
             
             const btn = overlay.querySelector('.continue-btn');
             btn.addEventListener('click', () => {
+                // 确保最后一关的死亡次数也被记录
+                levelDeaths[10] = currentLevelDeaths;
+                
+                // 计算总死亡次数
+                const totalDeaths = Object.values(levelDeaths).reduce((sum, deaths) => sum + deaths, 0);
+                
+                // 发送完整的游戏完成记录到服务器
+                // 这里我们发送一个特殊的完整游戏记录，包含所有关卡的死亡数据
+                if (gameStats.enabled) {
+                    setTimeout(() => gameStats.sendStats('game-complete', { 
+                        playerName: playerName,
+                        totalDeaths: totalDeaths,
+                        levelDeaths: levelDeaths,
+                        completedAt: new Date().toISOString()
+                    }), 0);
+                }
+                
                 // 追踪CEO晋升统计（完全静默，不影响游戏）
                 gameStats.trackCEOPromotion();
                 
@@ -2024,6 +2208,10 @@
             loopCount = 3;
             playerSpeed = basePlayerSpeed;
             gameStarted = false;
+            
+            // 重置死亡计数器
+            levelDeaths = {};
+            currentLevelDeaths = 0;
             
             // 清空游戏区域，移除所有陷阱和钥匙
             const gameContainer = document.getElementById('game-container');
@@ -2320,6 +2508,72 @@
             }
         }
 
+        // 显示排行榜
+        async function showLeaderboard() {
+            try {
+                const response = await fetch('/api/leaderboard?limit=10');
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || '获取排行榜失败');
+                }
+                
+                const leaderboard = result.data.leaderboard || [];
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'leaderboard-overlay';
+                
+                let leaderboardHTML = '';
+                if (leaderboard.length === 0) {
+                    leaderboardHTML = '<div class="leaderboard-empty">🎮 暂无通关记录<br/>成为第一个通关的勇士吧！</div>';
+                } else {
+                    leaderboardHTML = '<div class="leaderboard-list">';
+                    leaderboard.forEach((player, index) => {
+                        const rank = index + 1;
+                        const rankClass = rank <= 3 ? `rank-${rank}` : '';
+                        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                        
+                        leaderboardHTML += `
+                            <div class="leaderboard-item ${rankClass}">
+                                <div class="leaderboard-rank ${rankClass}">${rankEmoji}${rank}</div>
+                                <div class="leaderboard-name">${player.playerName}</div>
+                                <div class="leaderboard-deaths">💀 ${player.totalDeaths}</div>
+                            </div>
+                        `;
+                    });
+                    leaderboardHTML += '</div>';
+                }
+                
+                overlay.innerHTML = `
+                    <div class="leaderboard-box">
+                        <div class="leaderboard-title">
+                            🏆 通关排行榜
+                        </div>
+                        ${leaderboardHTML}
+                        <button class="leaderboard-close-btn">关闭</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(overlay);
+                
+                const closeBtn = overlay.querySelector('.leaderboard-close-btn');
+                closeBtn.addEventListener('click', () => {
+                    document.body.removeChild(overlay);
+                });
+                
+                // 点击背景关闭
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('获取排行榜失败:', error);
+                showDialog('获取排行榜失败', '无法连接到服务器，请稍后再试。');
+            }
+        }
+
 
 
         // 生成爆炸音效
@@ -2543,6 +2797,9 @@
             
             // 创建钥匙（仅在第3、4、5关）
             createKeys();
+            
+            // 追踪关卡开始统计（完全静默，不影响游戏）
+            gameStats.trackLevelAttempt(gameState.currentLevel, loopCount);
             
             // 显示当前关卡的对话框
             const currentDialog = levelDialogs[gameState.currentLevel];
@@ -3635,8 +3892,11 @@
                 sparkle.remove();
             }, 1000);
             
+            // 记录当前关卡的死亡次数
+            levelDeaths[gameState.currentLevel] = currentLevelDeaths;
+            
             // 追踪关卡完成统计（完全静默，不影响游戏）
-            gameStats.trackLevelComplete(gameState.currentLevel);
+            gameStats.trackLevelComplete(gameState.currentLevel, loopCount);
             
             // 解锁下一关
             if (gameState.currentLevel === gameState.maxUnlockedLevel && gameState.currentLevel < gameState.maxLevel) {
@@ -3666,6 +3926,10 @@
             
             // 增加循环次数
             loopCount++;
+            
+            // 增加当前关卡死亡次数
+            currentLevelDeaths++;
+            
             updateProgressDisplay(); // 更新显示
             
             // 播放爆炸音效
@@ -3721,11 +3985,18 @@
             createTraps(true); // 使用现有布局
             setupMovingTraps(true); // 使用现有布局
             createKeys(); // 重新创建钥匙
+            
+            // 追踪关卡重试统计（完全静默，不影响游戏）
+            gameStats.trackLevelAttempt(gameState.currentLevel, loopCount);
         }
 
         // 下一关
         function nextLevel() {
             gameState.currentLevel++;
+            
+            // 重置当前关卡死亡次数
+            currentLevelDeaths = 0;
+            
             saveProgress(); // 保存当前关卡进度
             gameState.player = { x: 50, y: 250 };
             gameState.traps = [];
@@ -4071,7 +4342,12 @@
             toggleMusic();
         });
         
-
+        // 排行榜按钮事件监听器
+        const leaderboardBtn = document.getElementById('leaderboard-btn');
+        leaderboardBtn.addEventListener('click', () => {
+            playClickSound();
+            showLeaderboard();
+        });
         
         closeSelectBtn.addEventListener('click', () => {
             playClickSound();

@@ -81,6 +81,16 @@ const initStats = {
         "1": 0, "2": 0, "3": 0, "4": 0, "5": 0,
         "6": 0, "7": 0, "8": 0, "9": 0, "10": 0
     },
+    // 新增：关卡尝试次数统计
+    levelAttempts: {
+        "1": 0, "2": 0, "3": 0, "4": 0, "5": 0,
+        "6": 0, "7": 0, "8": 0, "9": 0, "10": 0
+    },
+    // 新增：关卡平均尝试次数
+    levelAverageAttempts: {
+        "1": 0, "2": 0, "3": 0, "4": 0, "5": 0,
+        "6": 0, "7": 0, "8": 0, "9": 0, "10": 0
+    },
     sessions: [],
     lastUpdated: ""
 };
@@ -137,6 +147,22 @@ async function initDatabase() {
                 levels INTEGER DEFAULT 0,
                 keys INTEGER DEFAULT 0,
                 ceo_promotions INTEGER DEFAULT 0
+            )
+        `);
+        
+        // 创建玩家游戏记录表（用于排行榜）
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS player_records (
+                id SERIAL PRIMARY KEY,
+                session_id VARCHAR(100) NOT NULL,
+                player_name VARCHAR(100),
+                total_deaths INTEGER DEFAULT 0,
+                level_deaths JSONB DEFAULT '{}',
+                level_attempts JSONB DEFAULT '{}',
+                completed_at TIMESTAMP,
+                is_completed BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
         
@@ -412,10 +438,35 @@ app.post('/api/stats/game-start', async (req, res) => {
     }
 });
 
+// 关卡开始/尝试
+app.post('/api/stats/level-attempt', async (req, res) => {
+    try {
+        const { sessionId, level, attemptCount } = req.body;
+        const stats = await storage.loadStats();
+        
+        // 记录关卡尝试次数
+        if (stats.levelAttempts[level.toString()]) {
+            stats.levelAttempts[level.toString()]++;
+        }
+        
+        // 记录事件
+        await storage.recordEvent(sessionId, 'level_attempt', { level, attemptCount });
+        
+        await storage.saveStats(stats);
+        
+        res.json({ 
+            success: true, 
+            message: `第${level}关尝试统计已记录` 
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 // 关卡完成
 app.post('/api/stats/level-complete', async (req, res) => {
     try {
-        const { sessionId, level } = req.body;
+        const { sessionId, level, attemptCount } = req.body;
         const stats = await storage.loadStats();
         const today = new Date().toISOString().split('T')[0];
         
@@ -425,11 +476,17 @@ app.post('/api/stats/level-complete', async (req, res) => {
             stats.levelStats[level.toString()]++;
         }
         
+        // 计算平均尝试次数
+        if (stats.levelAttempts[level.toString()] && stats.levelStats[level.toString()]) {
+            stats.levelAverageAttempts[level.toString()] = 
+                (stats.levelAttempts[level.toString()] / stats.levelStats[level.toString()]).toFixed(1);
+        }
+        
         // 更新每日统计
         await storage.updateDailyStats(today, 'levels', 1);
         
         // 记录事件
-        await storage.recordEvent(sessionId, 'level_complete', { level });
+        await storage.recordEvent(sessionId, 'level_complete', { level, attemptCount });
         
         await storage.saveStats(stats);
         
@@ -494,6 +551,230 @@ app.post('/api/stats/ceo-promotion', async (req, res) => {
     }
 });
 
+// 更新玩家记录
+app.post('/api/stats/player-record', async (req, res) => {
+    try {
+        const { sessionId, playerName, level, deaths, isCompleted } = req.body;
+        
+        if (pool) {
+            const client = await pool.connect();
+            
+            // 检查是否已有记录
+            const existingRecord = await client.query(
+                'SELECT * FROM player_records WHERE session_id = $1',
+                [sessionId]
+            );
+            
+            if (existingRecord.rows.length > 0) {
+                // 更新现有记录
+                const currentRecord = existingRecord.rows[0];
+                const levelDeaths = typeof currentRecord.level_deaths === 'string' 
+                    ? JSON.parse(currentRecord.level_deaths) 
+                    : currentRecord.level_deaths || {};
+                const levelAttempts = typeof currentRecord.level_attempts === 'string' 
+                    ? JSON.parse(currentRecord.level_attempts) 
+                    : currentRecord.level_attempts || {};
+                
+                levelDeaths[level] = deaths;
+                levelAttempts[level] = deaths + 1; // 尝试次数 = 死亡次数 + 1
+                
+                const totalDeaths = Object.values(levelDeaths).reduce((sum, d) => sum + d, 0);
+                
+                await client.query(`
+                    UPDATE player_records 
+                    SET player_name = $1, total_deaths = $2, level_deaths = $3, 
+                        level_attempts = $4, is_completed = $5, 
+                        completed_at = $6, updated_at = CURRENT_TIMESTAMP
+                    WHERE session_id = $7
+                `, [
+                    playerName || currentRecord.player_name,
+                    totalDeaths,
+                    JSON.stringify(levelDeaths),
+                    JSON.stringify(levelAttempts),
+                    isCompleted,
+                    isCompleted ? new Date() : currentRecord.completed_at,
+                    sessionId
+                ]);
+            } else {
+                // 创建新记录
+                const levelDeaths = { [level]: deaths };
+                const levelAttempts = { [level]: deaths + 1 };
+                
+                await client.query(`
+                    INSERT INTO player_records 
+                    (session_id, player_name, total_deaths, level_deaths, level_attempts, is_completed, completed_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                `, [
+                    sessionId,
+                    playerName,
+                    deaths,
+                    JSON.stringify(levelDeaths),
+                    JSON.stringify(levelAttempts),
+                    isCompleted,
+                    isCompleted ? new Date() : null
+                ]);
+            }
+            
+            client.release();
+        }
+        
+        res.json({ 
+            success: true, 
+            message: '玩家记录已更新' 
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 游戏完成记录
+app.post('/api/stats/game-complete', async (req, res) => {
+    try {
+        const { sessionId, playerName, totalDeaths, levelDeaths, completedAt } = req.body;
+        
+        if (pool) {
+            const client = await pool.connect();
+            
+            // 检查是否已有记录
+            const existingRecord = await client.query(
+                'SELECT * FROM player_records WHERE session_id = $1',
+                [sessionId]
+            );
+            
+            if (existingRecord.rows.length > 0) {
+                // 更新现有记录为完成状态
+                await client.query(`
+                    UPDATE player_records 
+                    SET player_name = $1, total_deaths = $2, level_deaths = $3, 
+                        is_completed = true, completed_at = $4, updated_at = CURRENT_TIMESTAMP
+                    WHERE session_id = $5
+                `, [
+                    playerName,
+                    totalDeaths,
+                    JSON.stringify(levelDeaths),
+                    new Date(completedAt),
+                    sessionId
+                ]);
+            } else {
+                // 创建新的完成记录
+                await client.query(`
+                    INSERT INTO player_records 
+                    (session_id, player_name, total_deaths, level_deaths, is_completed, completed_at)
+                    VALUES ($1, $2, $3, $4, true, $5)
+                `, [
+                    sessionId,
+                    playerName,
+                    totalDeaths,
+                    JSON.stringify(levelDeaths),
+                    new Date(completedAt)
+                ]);
+            }
+            
+            client.release();
+        }
+        
+        res.json({ 
+            success: true, 
+            message: '游戏完成记录已保存' 
+        });
+    } catch (e) {
+        console.error('游戏完成记录失败:', e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 获取排行榜
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const { limit = 10 } = req.query;
+        
+        if (pool) {
+            const client = await pool.connect();
+            
+            // 获取完成游戏的玩家排行榜（按总死亡次数排序）
+            const leaderboard = await client.query(`
+                SELECT 
+                    player_name,
+                    total_deaths,
+                    level_deaths,
+                    level_attempts,
+                    completed_at,
+                    EXTRACT(EPOCH FROM (completed_at - created_at)) as completion_time_seconds
+                FROM player_records 
+                WHERE is_completed = true AND player_name IS NOT NULL
+                ORDER BY total_deaths ASC, completed_at ASC
+                LIMIT $1
+            `, [parseInt(limit)]);
+            
+            // 获取每关平均死亡次数统计
+            const levelStats = await client.query(`
+                SELECT 
+                    level_key,
+                    AVG(CAST(level_value AS INTEGER)) as avg_deaths,
+                    COUNT(*) as player_count
+                FROM (
+                    SELECT 
+                        jsonb_each_text(level_deaths) as level_data
+                    FROM player_records 
+                    WHERE is_completed = true
+                ) as level_data_expanded,
+                LATERAL (
+                    SELECT 
+                        (level_data).key as level_key,
+                        (level_data).value as level_value
+                ) as level_parsed
+                WHERE level_key ~ '^[0-9]+$'
+                GROUP BY level_key
+                ORDER BY CAST(level_key AS INTEGER)
+            `);
+            
+            client.release();
+            
+            const formattedLeaderboard = leaderboard.rows.map((row, index) => ({
+                rank: index + 1,
+                playerName: row.player_name,
+                totalDeaths: row.total_deaths,
+                levelDeaths: typeof row.level_deaths === 'string' 
+                    ? JSON.parse(row.level_deaths) 
+                    : row.level_deaths,
+                levelAttempts: typeof row.level_attempts === 'string' 
+                    ? JSON.parse(row.level_attempts) 
+                    : row.level_attempts,
+                completedAt: row.completed_at,
+                completionTimeMinutes: row.completion_time_seconds ? 
+                    Math.round(row.completion_time_seconds / 60) : null
+            }));
+            
+            const formattedLevelStats = {};
+            levelStats.rows.forEach(row => {
+                formattedLevelStats[row.level_key] = {
+                    averageDeaths: parseFloat(row.avg_deaths).toFixed(1),
+                    playerCount: parseInt(row.player_count)
+                };
+            });
+            
+            res.json({
+                success: true,
+                data: {
+                    leaderboard: formattedLeaderboard,
+                    levelStats: formattedLevelStats
+                }
+            });
+        } else {
+            // 文件存储模式下返回空数据
+            res.json({
+                success: true,
+                data: {
+                    leaderboard: [],
+                    levelStats: {}
+                }
+            });
+        }
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 // 开发者专用：获取统计数据
 app.get('/api/admin/stats', async (req, res) => {
     try {
@@ -506,6 +787,83 @@ app.get('/api/admin/stats', async (req, res) => {
         
         const stats = await storage.loadStats();
         
+        // 获取排行榜数据
+        let leaderboardData = { leaderboard: [], levelStats: {} };
+        if (pool) {
+            try {
+                const client = await pool.connect();
+                
+                // 获取完成游戏的玩家排行榜（按总死亡次数排序）
+                const leaderboard = await client.query(`
+                    SELECT 
+                        player_name,
+                        total_deaths,
+                        level_deaths,
+                        level_attempts,
+                        completed_at,
+                        EXTRACT(EPOCH FROM (completed_at - created_at)) as completion_time_seconds
+                    FROM player_records 
+                    WHERE is_completed = true AND player_name IS NOT NULL
+                    ORDER BY total_deaths ASC, completed_at ASC
+                    LIMIT 10
+                `);
+                
+                // 获取每关平均死亡次数统计
+                const levelStats = await client.query(`
+                    SELECT 
+                        level_key,
+                        AVG(CAST(level_value AS INTEGER)) as avg_deaths,
+                        COUNT(*) as player_count
+                    FROM (
+                        SELECT 
+                            jsonb_each_text(level_deaths) as level_data
+                        FROM player_records 
+                        WHERE is_completed = true
+                    ) as level_data_expanded,
+                    LATERAL (
+                        SELECT 
+                            (level_data).key as level_key,
+                            (level_data).value as level_value
+                    ) as level_parsed
+                    WHERE level_key ~ '^[0-9]+$'
+                    GROUP BY level_key
+                    ORDER BY CAST(level_key AS INTEGER)
+                `);
+                
+                client.release();
+                
+                const formattedLeaderboard = leaderboard.rows.map((row, index) => ({
+                    rank: index + 1,
+                    playerName: row.player_name,
+                    totalDeaths: row.total_deaths,
+                    levelDeaths: typeof row.level_deaths === 'string' 
+                        ? JSON.parse(row.level_deaths) 
+                        : row.level_deaths,
+                    levelAttempts: typeof row.level_attempts === 'string' 
+                        ? JSON.parse(row.level_attempts) 
+                        : row.level_attempts,
+                    completedAt: row.completed_at,
+                    completionTimeMinutes: row.completion_time_seconds ? 
+                        Math.round(row.completion_time_seconds / 60) : null
+                }));
+                
+                const formattedLevelStats = {};
+                levelStats.rows.forEach(row => {
+                    formattedLevelStats[row.level_key] = {
+                        averageDeaths: parseFloat(row.avg_deaths).toFixed(1),
+                        playerCount: parseInt(row.player_count)
+                    };
+                });
+                
+                leaderboardData = {
+                    leaderboard: formattedLeaderboard,
+                    levelStats: formattedLevelStats
+                };
+            } catch (e) {
+                console.log('获取排行榜数据失败:', e.message);
+            }
+        }
+        
         // 计算统计摘要
         const summary = {
             totalPlayers: stats.totalPlayers,
@@ -515,6 +873,10 @@ app.get('/api/admin/stats', async (req, res) => {
             totalCEOPromotions: stats.totalCEOPromotions,
             dailyStats: stats.dailyStats,
             levelStats: stats.levelStats,
+            levelAttempts: stats.levelAttempts,
+            levelAverageAttempts: stats.levelAverageAttempts,
+            leaderboard: leaderboardData.leaderboard,
+            levelDeathStats: leaderboardData.levelStats,
             lastUpdated: stats.lastUpdated
         };
         
