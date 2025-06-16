@@ -1,16 +1,10 @@
 {
   "totalPlayers": 1,
-  "totalGames": 1,
-  "totalLevelsCompleted": 1,
+  "totalGames": 0,
+  "totalLevelsCompleted": 0,
   "totalKeysCollected": 0,
   "totalCEOPromotions": 0,
-  "dailyStats": {
-    "2025-06-16": {
-      "players": 1,
-      "games": 1,
-      "levels": 1
-    }
-  },
+  "dailyStats": {},
   "levelStats": {
     "1": 0,
     "2": 0,
@@ -23,13 +17,6 @@
     "9": 0,
     "10": 0
   },
-  "sessions": [
-    {
-      "sessionId": "1750044850053_4codk0tou",
-      "startTime": "2025-06-16T03:34:10.053Z",
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-      "ip": "::1"
-    }
-  ],
-  "lastUpdated": "2025-06-16T03:43:20.018Z"
+  "sessions": [],
+  "lastUpdated": "2025-06-16T04:52:27.607Z"
 }

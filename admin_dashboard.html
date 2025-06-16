@@ -333,27 +333,36 @@
             }
         }
         
-        function displayStats(data) {
-            const { summary, detailedStats } = data;
+        function displayStats(response) {
+            const stats = response.data;
             
             // 更新主要统计卡片
-            document.getElementById('totalPlayers').textContent = summary.totalPlayers;
-            document.getElementById('totalGames').textContent = summary.totalGames;
-            document.getElementById('totalLevels').textContent = summary.totalLevelsCompleted;
-            document.getElementById('totalCEO').textContent = summary.totalCEOPromotions;
+            document.getElementById('totalPlayers').textContent = stats.totalPlayers || 0;
+            document.getElementById('totalGames').textContent = stats.totalGames || 0;
+            document.getElementById('totalLevels').textContent = stats.totalLevelsCompleted || 0;
+            document.getElementById('totalCEO').textContent = stats.totalCEOPromotions || 0;
             
             // 更新详细统计
-            document.getElementById('totalKeys').textContent = summary.totalKeysCollected;
-            document.getElementById('avgLevels').textContent = summary.averageLevelsPerGame;
-            document.getElementById('completionRate').textContent = summary.completionRate;
-            document.getElementById('activeDays').textContent = summary.activeDays;
+            document.getElementById('totalKeys').textContent = stats.totalKeysCollected || 0;
+            
+            // 计算平均关卡数
+            const avgLevels = stats.totalGames > 0 ? (stats.totalLevelsCompleted / stats.totalGames).toFixed(2) : '0.00';
+            document.getElementById('avgLevels').textContent = avgLevels;
+            
+            // 计算完成率
+            const completionRate = stats.totalPlayers > 0 ? ((stats.totalCEOPromotions / stats.totalPlayers) * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('completionRate').textContent = completionRate;
+            
+            // 计算活跃天数
+            const activeDays = Object.keys(stats.dailyStats || {}).length;
+            document.getElementById('activeDays').textContent = activeDays;
             
             // 更新关卡统计
             const levelStatsContainer = document.getElementById('levelStats');
             levelStatsContainer.innerHTML = '';
             
             for (let i = 1; i <= 10; i++) {
-                const count = detailedStats.levelStats[i.toString()] || 0;
+                const count = stats.levelStats[i.toString()] || 0;
                 const levelItem = document.createElement('div');
                 levelItem.className = 'level-item';
                 levelItem.innerHTML = `
@@ -367,7 +376,7 @@
             const dailyStatsContainer = document.getElementById('dailyStats');
             dailyStatsContainer.innerHTML = '';
             
-            const dailyStats = detailedStats.dailyStats || {};
+            const dailyStats = stats.dailyStats || {};
             const sortedDates = Object.keys(dailyStats).sort().reverse(); // 最新日期在前
             
             if (sortedDates.length === 0) {

@@ -1520,7 +1520,9 @@
             // 根据部署环境自动选择统计服务器地址
             statsServerUrl: window.location.hostname === 'xulilong.github.io' 
                 ? 'https://rebirth-gyuv.onrender.com'  // GitHub Pages 使用 Render 服务器
-                : window.location.origin,              // 本地开发或同域部署
+                : window.location.protocol === 'file:' 
+                    ? 'http://localhost:3000'           // 本地文件访问时使用 localhost
+                    : window.location.origin,           // 其他情况使用同域
             enabled: true, // 统计开关
             
             // 初始化统计系统（完全静默，不阻塞游戏启动）
