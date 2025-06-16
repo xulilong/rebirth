@@ -1514,83 +1514,109 @@
             sessionId: Date.now() + '_' + Math.random().toString(36).substr(2, 9) // 会话ID
         };
 
-        // 服务器端统计系统
+        // 服务器端统计系统（完全静默，零影响）
         const gameStats = {
             sessionId: null,
-            statsServerUrl: window.location.origin, // 统计服务器地址（Vercel同域部署）
+            statsServerUrl: window.location.origin, // 统计服务器地址（自动适配部署环境）
+            enabled: true, // 统计开关
             
-            // 初始化统计系统
+            // 初始化统计系统（完全静默，不阻塞游戏启动）
             async init() {
-                try {
-                    await this.trackNewPlayer();
-                } catch (e) {
-                    // 静默处理错误，不影响游戏体验
-                }
-            },
-
-            // 发送统计数据到服务器
-            async sendStats(endpoint, data = {}) {
-                try {
-                    const response = await fetch(`${this.statsServerUrl}/api/stats/${endpoint}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            sessionId: this.sessionId,
-                            ...data
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                // 使用setTimeout确保统计初始化不会阻塞游戏启动
+                setTimeout(async () => {
+                    try {
+                        await this.trackNewPlayer();
+                    } catch (e) {
+                        // 完全静默处理，不输出任何信息
                     }
-                    
-                    return await response.json();
-                } catch (e) {
-                    // 静默处理错误，不影响游戏体验
-                    return null;
-                }
+                }, 100); // 延迟100ms执行，确保游戏先启动
             },
 
-            // 追踪新玩家
-            async trackNewPlayer() {
+            // 发送统计数据到服务器（完全静默，不影响游戏体验）
+            async sendStats(endpoint, data = {}) {
+                // 使用Promise.race实现超时控制，避免长时间等待
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('timeout')), 2000); // 2秒超时
+                });
+                
+                const fetchPromise = fetch(`${this.statsServerUrl}/api/stats/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sessionId: this.sessionId,
+                        timestamp: new Date().toISOString(),
+                        ...data
+                    })
+                });
+                
                 try {
-                    const response = await fetch(`${this.statsServerUrl}/api/stats/new-player`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({})
-                    });
+                    // 使用Promise.race确保最多等待2秒
+                    const response = await Promise.race([fetchPromise, timeoutPromise]);
                     
-                    if (response.ok) {
+                    if (response && response.ok) {
+                        return await response.json();
+                    }
+                } catch (e) {
+                    // 完全静默处理，不输出任何日志
+                }
+                return null;
+            },
+
+            // 追踪新玩家（完全静默）
+            async trackNewPlayer() {
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('timeout')), 2000); // 2秒超时
+                });
+                
+                const fetchPromise = fetch(`${this.statsServerUrl}/api/stats/new-player`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        language: navigator.language,
+                        screenSize: `${screen.width}x${screen.height}`
+                    })
+                });
+                
+                try {
+                    const response = await Promise.race([fetchPromise, timeoutPromise]);
+                    
+                    if (response && response.ok) {
                         const result = await response.json();
                         this.sessionId = result.sessionId;
                     }
                 } catch (e) {
-                    // 静默处理错误，不影响游戏体验
+                    // 完全静默处理，不输出任何日志或错误信息
                 }
             },
 
-            // 追踪游戏开始
-            async trackGameStart() {
-                await this.sendStats('game-start');
+            // 追踪游戏开始（异步非阻塞）
+            trackGameStart() {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('game-start'), 0);
             },
 
-            // 追踪关卡完成
-            async trackLevelComplete(level) {
-                await this.sendStats('level-complete', { level });
+            // 追踪关卡完成（异步非阻塞）
+            trackLevelComplete(level) {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('level-complete', { level }), 0);
             },
 
-            // 追踪钥匙收集
-            async trackKeyCollected() {
-                await this.sendStats('key-collected');
+            // 追踪钥匙收集（异步非阻塞）
+            trackKeyCollected() {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('key-collected'), 0);
             },
 
-            // 追踪CEO晋升
-            async trackCEOPromotion() {
-                await this.sendStats('ceo-promotion');
+            // 追踪CEO晋升（异步非阻塞）
+            trackCEOPromotion() {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('ceo-promotion'), 0);
             }
         };
 
@@ -1939,12 +1965,8 @@
             
             const btn = overlay.querySelector('.continue-btn');
             btn.addEventListener('click', () => {
-                // 追踪CEO晋升统计（静默执行，不影响游戏）
-                try {
-                    gameStats.trackCEOPromotion();
-                } catch (e) {
-                    // 静默处理统计错误
-                }
+                // 追踪CEO晋升统计（完全静默，不影响游戏）
+                gameStats.trackCEOPromotion();
                 
                 document.body.removeChild(overlay);
                 // 重置所有游戏数据和缓存，传入玩家姓名
@@ -2404,12 +2426,8 @@
 
         // 开始关卡
         function startLevel() {
-            // 追踪游戏开始统计（静默执行，不影响游戏）
-            try {
-                gameStats.trackGameStart();
-            } catch (e) {
-                // 静默处理统计错误
-            }
+            // 追踪游戏开始统计（完全静默，不影响游戏）
+            gameStats.trackGameStart();
             
             gameState.gameOver = false;
             gameState.player = { x: 50, y: 250 };
@@ -2442,12 +2460,8 @@
             // 初始化音频系统
             initAudio();
             
-            // 初始化统计系统（静默执行，不影响游戏）
-            try {
-                gameStats.init();
-            } catch (e) {
-                // 静默处理统计错误
-            }
+            // 初始化统计系统（完全静默，不影响游戏）
+            gameStats.init();
             
             // 更新游戏区域尺寸
             updateGameDimensions();
@@ -3250,12 +3264,8 @@
             // 播放收集音效
             playClickSound();
             
-            // 追踪钥匙收集统计（静默执行，不影响游戏）
-            try {
-                gameStats.trackKeyCollected();
-            } catch (e) {
-                // 静默处理统计错误
-            }
+            // 追踪钥匙收集统计（完全静默，不影响游戏）
+            gameStats.trackKeyCollected();
             
             // 移除钥匙
             keyElement.remove();
@@ -3607,12 +3617,8 @@
                 sparkle.remove();
             }, 1000);
             
-            // 追踪关卡完成统计（静默执行，不影响游戏）
-            try {
-                gameStats.trackLevelComplete(gameState.currentLevel);
-            } catch (e) {
-                // 静默处理统计错误
-            }
+            // 追踪关卡完成统计（完全静默，不影响游戏）
+            gameStats.trackLevelComplete(gameState.currentLevel);
             
             // 解锁下一关
             if (gameState.currentLevel === gameState.maxUnlockedLevel && gameState.currentLevel < gameState.maxLevel) {
