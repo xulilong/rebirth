@@ -1510,7 +1510,88 @@
             requiredKeys: 0, // 需要收集的钥匙数量
             playerFrozen: false, // 玩家是否被冰冻
             freezeEndTime: 0, // 冰冻结束时间
-            levelLayouts: {} // 存储每关的陷阱布局
+            levelLayouts: {}, // 存储每关的陷阱布局
+            sessionId: Date.now() + '_' + Math.random().toString(36).substr(2, 9) // 会话ID
+        };
+
+        // 服务器端统计系统
+        const gameStats = {
+            sessionId: null,
+            statsServerUrl: window.location.origin, // 统计服务器地址（Vercel同域部署）
+            
+            // 初始化统计系统
+            async init() {
+                try {
+                    await this.trackNewPlayer();
+                } catch (e) {
+                    // 静默处理错误，不影响游戏体验
+                }
+            },
+
+            // 发送统计数据到服务器
+            async sendStats(endpoint, data = {}) {
+                try {
+                    const response = await fetch(`${this.statsServerUrl}/api/stats/${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            sessionId: this.sessionId,
+                            ...data
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (e) {
+                    // 静默处理错误，不影响游戏体验
+                    return null;
+                }
+            },
+
+            // 追踪新玩家
+            async trackNewPlayer() {
+                try {
+                    const response = await fetch(`${this.statsServerUrl}/api/stats/new-player`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({})
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.sessionId = result.sessionId;
+                    }
+                } catch (e) {
+                    // 静默处理错误，不影响游戏体验
+                }
+            },
+
+            // 追踪游戏开始
+            async trackGameStart() {
+                await this.sendStats('game-start');
+            },
+
+            // 追踪关卡完成
+            async trackLevelComplete(level) {
+                await this.sendStats('level-complete', { level });
+            },
+
+            // 追踪钥匙收集
+            async trackKeyCollected() {
+                await this.sendStats('key-collected');
+            },
+
+            // 追踪CEO晋升
+            async trackCEOPromotion() {
+                await this.sendStats('ceo-promotion');
+            }
         };
 
         // 本地存储相关函数
@@ -1858,6 +1939,13 @@
             
             const btn = overlay.querySelector('.continue-btn');
             btn.addEventListener('click', () => {
+                // 追踪CEO晋升统计（静默执行，不影响游戏）
+                try {
+                    gameStats.trackCEOPromotion();
+                } catch (e) {
+                    // 静默处理统计错误
+                }
+                
                 document.body.removeChild(overlay);
                 // 重置所有游戏数据和缓存，传入玩家姓名
                 resetAllGameData(playerName);
@@ -2316,6 +2404,13 @@
 
         // 开始关卡
         function startLevel() {
+            // 追踪游戏开始统计（静默执行，不影响游戏）
+            try {
+                gameStats.trackGameStart();
+            } catch (e) {
+                // 静默处理统计错误
+            }
+            
             gameState.gameOver = false;
             gameState.player = { x: 50, y: 250 };
             gameState.traps = [];
@@ -2346,6 +2441,13 @@
         function initGame() {
             // 初始化音频系统
             initAudio();
+            
+            // 初始化统计系统（静默执行，不影响游戏）
+            try {
+                gameStats.init();
+            } catch (e) {
+                // 静默处理统计错误
+            }
             
             // 更新游戏区域尺寸
             updateGameDimensions();
@@ -3148,6 +3250,13 @@
             // 播放收集音效
             playClickSound();
             
+            // 追踪钥匙收集统计（静默执行，不影响游戏）
+            try {
+                gameStats.trackKeyCollected();
+            } catch (e) {
+                // 静默处理统计错误
+            }
+            
             // 移除钥匙
             keyElement.remove();
             gameState.keys = gameState.keys.filter(k => k !== keyElement);
@@ -3497,6 +3606,13 @@
             setTimeout(() => {
                 sparkle.remove();
             }, 1000);
+            
+            // 追踪关卡完成统计（静默执行，不影响游戏）
+            try {
+                gameStats.trackLevelComplete(gameState.currentLevel);
+            } catch (e) {
+                // 静默处理统计错误
+            }
             
             // 解锁下一关
             if (gameState.currentLevel === gameState.maxUnlockedLevel && gameState.currentLevel < gameState.maxLevel) {

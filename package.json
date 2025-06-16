@@ -1,0 +1,31 @@
+{
+  "name": "zack-rescue-game-stats",
+  "version": "1.0.0",
+  "description": "拯救Zack游戏统计服务器",
+  "main": "stats_server.js",
+  "scripts": {
+    "start": "node stats_server.js",
+    "dev": "nodemon stats_server.js",
+    "stats": "node dev_stats.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "game",
+    "statistics",
+    "analytics",
+    "express",
+    "nodejs"
+  ],
+  "author": "xulilong",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

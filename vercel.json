@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "stats_server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "admin_dashboard.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/stats_server.js"
+    },
+    {
+      "src": "/health",
+      "dest": "/stats_server.js"
+    },
+    {
+      "src": "/admin",
+      "dest": "/admin_dashboard.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+} 
