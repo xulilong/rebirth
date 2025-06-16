@@ -1517,7 +1517,10 @@
         // 服务器端统计系统（完全静默，零影响）
         const gameStats = {
             sessionId: null,
-            statsServerUrl: window.location.origin, // 统计服务器地址（自动适配部署环境）
+            // 根据部署环境自动选择统计服务器地址
+            statsServerUrl: window.location.hostname === 'xulilong.github.io' 
+                ? 'https://rebirth-gyuv.onrender.com'  // GitHub Pages 使用 Render 服务器
+                : window.location.origin,              // 本地开发或同域部署
             enabled: true, // 统计开关
             
             // 初始化统计系统（完全静默，不阻塞游戏启动）
@@ -1532,8 +1535,19 @@
                 }, 100); // 延迟100ms执行，确保游戏先启动
             },
 
+            // 生成临时会话ID（如果服务器会话ID获取失败）
+            generateTempSessionId() {
+                if (!this.sessionId) {
+                    this.sessionId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                }
+                return this.sessionId;
+            },
+
             // 发送统计数据到服务器（完全静默，不影响游戏体验）
             async sendStats(endpoint, data = {}) {
+                // 确保有会话ID
+                const sessionId = this.sessionId || this.generateTempSessionId();
+                
                 // 使用Promise.race实现超时控制，避免长时间等待
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('timeout')), 2000); // 2秒超时
@@ -1545,8 +1559,10 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        sessionId: this.sessionId,
+                        sessionId: sessionId,
                         timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        referrer: document.referrer || 'direct',
                         ...data
                     })
                 });
