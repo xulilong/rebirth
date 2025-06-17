@@ -933,6 +933,56 @@
             font-style: italic;
         }
 
+        /* 中等屏幕设备上的CEO仪式优化 */
+        @media (max-width: 850px) and (min-width: 481px) {
+            .ceo-ceremony-overlay {
+                padding: 15px 10px;
+                justify-content: flex-start;
+                min-height: 100vh;
+            }
+            
+            .mt-logo {
+                font-size: 6em;
+                margin-bottom: 20px;
+            }
+            
+            .ceo-title {
+                font-size: 2.2em;
+                margin-bottom: 15px;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            .ceo-subtitle {
+                font-size: 1.2em;
+                margin-bottom: 25px;
+                text-align: center;
+                padding: 0 20px;
+                max-width: 95%;
+            }
+            
+            .ceo-welcome {
+                font-size: 1em;
+                margin-bottom: 25px;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            .mt-values {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 25px;
+                padding: 0 20px;
+                max-width: 95%;
+            }
+            
+            .continue-btn {
+                margin: 25px 20px;
+                max-width: 320px;
+            }
+        }
+
         /* 小屏幕设备上的CEO对话框优化 */
         @media (max-width: 850px) {
             .zack-success-overlay {
@@ -1048,6 +1098,82 @@
                 width: 100%;
                 max-width: 250px;
             }
+            
+            /* CEO仪式页面小屏幕优化 */
+            .ceo-ceremony-overlay {
+                justify-content: flex-start;
+                padding: 10px 5px;
+                min-height: 100vh;
+            }
+            
+            .mt-logo {
+                font-size: 4em;
+                margin-bottom: 15px;
+            }
+            
+            .ceo-title {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+                text-align: center;
+                padding: 0 10px;
+            }
+            
+            .ceo-subtitle {
+                font-size: 1em;
+                margin-bottom: 20px;
+                text-align: center;
+                padding: 0 15px;
+                max-width: 90%;
+            }
+            
+            .ceo-welcome {
+                font-size: 0.9em;
+                margin-bottom: 20px;
+                text-align: center;
+                padding: 0 15px;
+            }
+            
+            .mt-values {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 20px;
+                padding: 0 10px;
+                max-width: 90%;
+            }
+            
+            .value-item {
+                text-align: center;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                margin: 0;
+            }
+            
+            .value-icon {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+            
+            .value-item > div:first-of-type {
+                font-size: 0.9em;
+                font-weight: bold;
+                margin-bottom: 3px;
+            }
+            
+            .value-desc {
+                font-size: 0.7em;
+                color: #bbb;
+                line-height: 1.2;
+            }
+            
+            .continue-btn {
+                font-size: 1em;
+                padding: 12px 20px;
+                margin: 20px 10px;
+                max-width: 280px;
+                width: calc(100% - 20px);
+            }
         }
 
         /* CEO就职仪式动画 */
@@ -1064,6 +1190,9 @@
             justify-content: center;
             z-index: 1001;
             animation: ceremonyFadeIn 1s ease-in;
+            overflow-y: auto;
+            padding: 20px 10px;
+            box-sizing: border-box;
         }
 
         @keyframes ceremonyFadeIn {
@@ -2091,6 +2220,24 @@
             
             function handleCEOAcceptance() {
                 const playerName = nameInput.value.trim() || '勇敢的冒险者';
+                
+                // 确保最后一关的死亡次数也被记录
+                levelDeaths[10] = currentLevelDeaths;
+                
+                // 计算总死亡次数
+                const totalDeaths = Object.values(levelDeaths).reduce((sum, deaths) => sum + deaths, 0);
+                
+                // 发送完整的游戏完成记录到服务器
+                // 这里我们发送一个特殊的完整游戏记录，包含所有关卡的死亡数据
+                if (gameStats.enabled) {
+                    setTimeout(() => gameStats.sendStats('game-complete', { 
+                        playerName: playerName,
+                        totalDeaths: totalDeaths,
+                        levelDeaths: levelDeaths,
+                        completedAt: new Date().toISOString()
+                    }), 0);
+                }
+                
                 document.body.removeChild(overlay);
                 // 显示CEO就职仪式，传入玩家姓名
                 showCEOCeremony(playerName);
@@ -2150,23 +2297,6 @@
             
             const btn = overlay.querySelector('.continue-btn');
             btn.addEventListener('click', () => {
-                // 确保最后一关的死亡次数也被记录
-                levelDeaths[10] = currentLevelDeaths;
-                
-                // 计算总死亡次数
-                const totalDeaths = Object.values(levelDeaths).reduce((sum, deaths) => sum + deaths, 0);
-                
-                // 发送完整的游戏完成记录到服务器
-                // 这里我们发送一个特殊的完整游戏记录，包含所有关卡的死亡数据
-                if (gameStats.enabled) {
-                    setTimeout(() => gameStats.sendStats('game-complete', { 
-                        playerName: playerName,
-                        totalDeaths: totalDeaths,
-                        levelDeaths: levelDeaths,
-                        completedAt: new Date().toISOString()
-                    }), 0);
-                }
-                
                 // 追踪CEO晋升统计（完全静默，不影响游戏）
                 gameStats.trackCEOPromotion();
                 

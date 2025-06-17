@@ -364,6 +364,107 @@ class StatsStorage {
             }
         }
     }
+
+    async savePlayerRecord(playerData) {
+        try {
+            const leaderboardFile = path.join(__dirname, 'leaderboard.json');
+            let leaderboard = [];
+            
+            // 读取现有排行榜数据
+            if (fs.existsSync(leaderboardFile)) {
+                const content = fs.readFileSync(leaderboardFile, 'utf8');
+                leaderboard = JSON.parse(content);
+            }
+            
+            // 检查是否已有相同sessionId的记录
+            const existingIndex = leaderboard.findIndex(record => 
+                record.sessionId === playerData.sessionId
+            );
+            
+            const newRecord = {
+                sessionId: playerData.sessionId,
+                playerName: playerData.playerName,
+                totalDeaths: playerData.totalDeaths,
+                levelDeaths: playerData.levelDeaths,
+                completedAt: playerData.completedAt,
+                createdAt: new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                // 更新现有记录
+                leaderboard[existingIndex] = newRecord;
+            } else {
+                // 添加新记录
+                leaderboard.push(newRecord);
+            }
+            
+            // 按总死亡次数排序，然后按完成时间排序
+            leaderboard.sort((a, b) => {
+                if (a.totalDeaths === b.totalDeaths) {
+                    return new Date(a.completedAt) - new Date(b.completedAt);
+                }
+                return a.totalDeaths - b.totalDeaths;
+            });
+            
+            // 保存排行榜数据
+            fs.writeFileSync(leaderboardFile, JSON.stringify(leaderboard, null, 2));
+            
+            console.log(`排行榜记录已保存: ${playerData.playerName} - ${playerData.totalDeaths}次死亡`);
+        } catch (error) {
+            console.error('保存排行榜记录失败:', error);
+            throw error;
+        }
+    }
+
+    async loadLeaderboard(limit = 10) {
+        try {
+            const leaderboardFile = path.join(__dirname, 'leaderboard.json');
+            
+            if (!fs.existsSync(leaderboardFile)) {
+                return { leaderboard: [], levelStats: {} };
+            }
+            
+            const content = fs.readFileSync(leaderboardFile, 'utf8');
+            const records = JSON.parse(content);
+            
+            // 取前N名
+            const topRecords = records.slice(0, limit);
+            
+            // 格式化排行榜数据
+            const leaderboard = topRecords.map((record, index) => ({
+                rank: index + 1,
+                playerName: record.playerName,
+                totalDeaths: record.totalDeaths,
+                levelDeaths: record.levelDeaths,
+                completedAt: record.completedAt
+            }));
+            
+            // 计算关卡统计
+            const levelStats = {};
+            if (records.length > 0) {
+                // 计算每关的平均死亡次数
+                for (let level = 1; level <= 10; level++) {
+                    const levelKey = level.toString();
+                    const levelDeaths = records
+                        .map(record => record.levelDeaths[levelKey] || 0)
+                        .filter(deaths => deaths !== undefined);
+                    
+                    if (levelDeaths.length > 0) {
+                        const avgDeaths = levelDeaths.reduce((sum, deaths) => sum + deaths, 0) / levelDeaths.length;
+                        levelStats[levelKey] = {
+                            averageDeaths: avgDeaths.toFixed(1),
+                            playerCount: levelDeaths.length
+                        };
+                    }
+                }
+            }
+            
+            return { leaderboard, levelStats };
+        } catch (error) {
+            console.error('读取排行榜失败:', error);
+            return { leaderboard: [], levelStats: {} };
+        }
+    }
 }
 
 const storage = new StatsStorage();
@@ -671,6 +772,15 @@ app.post('/api/stats/game-complete', async (req, res) => {
             }
             
             client.release();
+        } else {
+            // 文件存储模式：保存到排行榜文件
+            await storage.savePlayerRecord({
+                sessionId,
+                playerName,
+                totalDeaths,
+                levelDeaths,
+                completedAt
+            });
         }
         
         res.json({ 
@@ -761,13 +871,11 @@ app.get('/api/leaderboard', async (req, res) => {
                 }
             });
         } else {
-            // 文件存储模式下返回空数据
+            // 文件存储模式：从文件读取排行榜数据
+            const leaderboardData = await storage.loadLeaderboard(parseInt(limit));
             res.json({
                 success: true,
-                data: {
-                    leaderboard: [],
-                    levelStats: {}
-                }
+                data: leaderboardData
             });
         }
     } catch (e) {
