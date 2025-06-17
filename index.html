@@ -177,8 +177,17 @@
 
         <div class="message-box">
             <p class="message-text">提示：公司CEO-Zack遇到了危险，<br>是兄弟就来救他！！！</p>
-            <a href="game.html" class="start-button">点击出发</a>
+            <a href="javascript:void(0)" onclick="resetAndRedirect()" class="start-button">点击出发</a>
         </div>
     </div>
+
+    <script>
+        function resetAndRedirect() {
+            // 清除所有游戏相关的本地存储
+            localStorage.clear();
+            // 跳转到游戏中心
+            window.location.href = 'https://xulilong.github.io/rebirth/game.html';
+        }
+    </script>
 </body>
 </html> 
