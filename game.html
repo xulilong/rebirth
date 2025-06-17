@@ -1,0 +1,4644 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>拯救Zack - MT大冒险</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            /* 防止页面滚动 */
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* 小屏幕设备优化 */
+        @media (max-width: 850px) {
+            body {
+                padding: 10px;
+                /* 允许垂直滚动以显示所有内容，但阻止水平滚动 */
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            
+            #game-container {
+                width: 95%;
+                max-width: 800px;
+                height: 300px; /* 在小屏幕上减小游戏区域高度 */
+            }
+            
+            .level-info {
+                font-size: 20px;
+                margin: 8px 0;
+            }
+            
+            .controls {
+                margin: 15px 0;
+            }
+            
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+                margin: 5px;
+            }
+            
+            .location-info {
+                font-size: 16px;
+                padding: 6px 12px;
+                margin-bottom: 10px;
+            }
+        }
+        
+        /* 超小屏幕设备优化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            #game-container {
+                width: 98%;
+                height: 250px;
+            }
+            
+            .level-info {
+                font-size: 18px;
+                margin: 5px 0;
+            }
+            
+            button {
+                padding: 6px 12px;
+                font-size: 12px;
+                margin: 3px;
+            }
+            
+            .location-info {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 0 auto;
+            background-color: #333;
+            border: 3px solid #555;
+            overflow: hidden;
+        }
+        
+        #game-container.hell-mode {
+            background: linear-gradient(45deg, #1a0000, #330000, #1a0000, #330000);
+            background-size: 40px 40px;
+            animation: hellBackground 3s linear infinite;
+            border: 3px solid #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 0, 0.2);
+        }
+        
+        @keyframes hellBackground {
+            0% { background-position: 0px 0px; }
+            100% { background-position: 40px 40px; }
+        }
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #player::before {
+            content: '🧙‍♂️';
+            font-size: 35px;
+            animation: fly 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes fly {
+            0% { transform: translateY(0px) rotate(-2deg); }
+            100% { transform: translateY(-8px) rotate(2deg); }
+        }
+        #door {
+            position: absolute;
+            width: 60px;
+            height: 100px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 50%, #000 100%);
+            border: 5px solid #8B4513;
+            border-radius: 10px 10px 0 0;
+            right: 20px;
+            bottom: 0;
+            z-index: 5;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        #door::before {
+            content: '🚪';
+            position: absolute;
+            font-size: 40px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.8;
+        }
+        
+        #door::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            right: 8px;
+            top: 45%;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+        .trap {
+            position: absolute;
+            background-color: #8B4513;
+            border: 2px solid #654321;
+            z-index: 2;
+        }
+        .level-info {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        #progress-info {
+            font-size: 18px;
+            color: #FFD700;
+            font-weight: normal;
+        }
+
+        #loop-info {
+            color: #e74c3c;
+            font-size: 18px;
+            margin-left: 15px;
+            font-weight: bold;
+        }
+        
+        .location-info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 2px solid #e74c3c;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        /* 关卡选择器样式 */
+        #level-select {
+            background-color: rgba(0,0,0,0.9);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        #level-select.hidden {
+            display: none !important;
+        }
+        
+        #level-buttons {
+            display: grid;
+            grid-template-columns: repeat(10, 60px);
+            gap: 10px;
+            margin: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .level-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .level-btn.unlocked {
+            background-color: #4CAF50;
+            border: 2px solid #45a049;
+        }
+        
+        .level-btn.current {
+            background-color: #FFD700;
+            color: #333;
+            border: 2px solid #FFA500;
+        }
+        
+        .level-btn.locked {
+            background-color: #666;
+            color: #999;
+            cursor: not-allowed;
+            border: 2px solid #555;
+        }
+        
+        #close-select-btn {
+            background-color: #f44336;
+            margin-top: 20px;
+        }
+        
+        #close-select-btn:hover {
+            background-color: #da190b;
+        }
+        
+        #reset-progress-btn {
+            background-color: #ff9800;
+        }
+        
+        #reset-progress-btn:hover {
+            background-color: #e68900;
+        }
+        
+        /* 音乐控制按钮样式 */
+        #music-toggle-btn {
+            background-color: #9C27B0;
+        }
+        
+        #music-toggle-btn:hover {
+            background-color: #7B1FA2;
+        }
+        
+        /* 排行榜按钮样式 */
+        #leaderboard-btn {
+            background-color: #FF5722;
+        }
+        
+        #leaderboard-btn:hover {
+            background-color: #E64A19;
+        }
+        
+        /* 响应式设计 - 小屏幕适配 */
+        @media screen and (max-width: 850px) {
+            body {
+                padding: 10px;
+            }
+            
+            #game-container {
+                width: 95vw;
+                max-width: 800px;
+                height: 60vh;
+                min-height: 400px;
+                max-height: 500px;
+            }
+            
+            .level-info {
+                font-size: 18px;
+                margin: 5px 0;
+            }
+            
+            #progress-info, #loop-info {
+                font-size: 14px;
+            }
+            
+            .location-info {
+                font-size: 16px;
+                padding: 6px 12px;
+                margin-bottom: 10px;
+            }
+            
+            .controls {
+                margin: 15px 0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            button {
+                padding: 8px 12px;
+                font-size: 14px;
+                margin: 2px;
+                flex: 0 1 auto;
+                min-width: 120px;
+            }
+            
+            h1 {
+                font-size: 24px;
+                margin: 10px 0;
+            }
+        }
+        
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            #game-container {
+                width: 98vw;
+                height: 50vh;
+                min-height: 350px;
+            }
+            
+            .level-info {
+                font-size: 16px;
+                line-height: 1.3;
+            }
+            
+            #progress-info, #loop-info {
+                font-size: 12px;
+                display: block;
+                margin: 2px 0;
+            }
+            
+            .location-info {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+            
+            .controls {
+                margin: 10px 0;
+                gap: 5px;
+            }
+            
+            button {
+                padding: 6px 8px;
+                font-size: 12px;
+                min-width: 100px;
+                flex: 1 1 calc(50% - 5px);
+                max-width: 150px;
+            }
+            
+            h1 {
+                font-size: 20px;
+                margin: 5px 0;
+            }
+            
+            /* 关卡选择器在小屏幕上的优化 */
+            #level-buttons {
+                grid-template-columns: repeat(5, 50px);
+                gap: 8px;
+            }
+            
+            .level-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 14px;
+            }
+        }
+        
+        @media screen and (max-width: 400px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 90%;
+                max-width: 200px;
+                margin: 3px 0;
+            }
+            
+            #level-buttons {
+                grid-template-columns: repeat(4, 45px);
+                gap: 6px;
+            }
+            
+            .level-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 12px;
+            }
+        }
+        
+        /* 移动端虚拟方向键 - 只在触摸设备上显示 */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            opacity: 0.7;
+        }
+        
+        .dpad {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 触摸操作提示 */
+        .touch-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            z-index: 1001;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .touch-hint.show {
+            opacity: 1;
+        }
+        
+        .dpad-btn {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dpad-btn:active {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dpad-up {
+            top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .dpad-down {
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .dpad-left {
+            left: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .dpad-right {
+            right: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* 只在触摸设备上显示虚拟按键 */
+        @media (hover: none) and (pointer: coarse) {
+            .mobile-controls {
+                display: block;
+            }
+        }
+        
+        /* 确保在小屏幕触摸设备上虚拟按键不会遮挡游戏内容 */
+        @media (hover: none) and (pointer: coarse) and (max-height: 600px) {
+            body {
+                padding-bottom: 160px;
+            }
+            
+            .mobile-controls {
+                bottom: 10px;
+            }
+            
+            .dpad {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .dpad-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+        }
+        
+        /* 横屏模式下的虚拟按键调整 */
+        @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+            .mobile-controls {
+                bottom: 10px;
+                left: 20px;
+                transform: none;
+            }
+            
+            .dpad {
+                width: 90px;
+                height: 90px;
+            }
+            
+            .dpad-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+        }
+        
+
+        
+
+        #message {
+            font-size: 24px;
+            height: 30px;
+            margin: 10px 0;
+            color: #FFD700;
+        }
+        .hidden {
+            display: none;
+        }
+
+        /* 对话框样式 */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .dialog-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            border: 3px solid #e74c3c;
+        }
+
+        .dialog-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+
+        .dialog-content {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #ecf0f1;
+            margin-bottom: 25px;
+            text-align: left;
+            white-space: pre-line;
+        }
+
+        .dialog-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .dialog-btn:hover {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Zack拯救成功对话框样式 */
+        .zack-success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(44, 62, 80, 0.95) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: successFade 0.8s ease-in;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        @keyframes successFade {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .zack-success-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            text-align: center;
+            position: relative;
+            border: 4px solid #FFD700;
+            animation: boxBounce 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes boxBounce {
+            0% { transform: translateY(-50px); opacity: 0; }
+            60% { transform: translateY(10px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .zack-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            border: 4px solid #FFD700;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            animation: avatarGlow 2s ease-in-out infinite alternate;
+            background-image: url('images/zack.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .zack-avatar.fallback {
+            background-image: none;
+        }
+
+        @keyframes avatarGlow {
+            0% { box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            100% { box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 0 20px rgba(255, 215, 0, 0); }
+        }
+
+        .zack-success-title {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .zack-success-content {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #ecf0f1;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .zack-success-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .zack-success-btn:hover {
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        /* 名字输入框样式 */
+        .name-input-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(52, 73, 94, 0.3);
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+        }
+
+        .name-input-container label {
+            display: block;
+            color: #FFD700;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #player-name {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 16px;
+            font-size: 1.1em;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        #player-name:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        /* 排行榜弹窗样式 */
+        .leaderboard-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .leaderboard-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            border: 3px solid #FF5722;
+        }
+
+        .leaderboard-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #FF5722;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .leaderboard-list {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: rgba(52, 73, 94, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(52, 73, 94, 0.5);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.rank-1 {
+            border-left-color: #FFD700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+        }
+
+        .leaderboard-item.rank-2 {
+            border-left-color: #C0C0C0;
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), rgba(192, 192, 192, 0.05));
+        }
+
+        .leaderboard-item.rank-3 {
+            border-left-color: #CD7F32;
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), rgba(205, 127, 50, 0.05));
+        }
+
+        .leaderboard-rank {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ecf0f1;
+            min-width: 30px;
+        }
+
+        .leaderboard-rank.rank-1 { color: #FFD700; }
+        .leaderboard-rank.rank-2 { color: #C0C0C0; }
+        .leaderboard-rank.rank-3 { color: #CD7F32; }
+
+        .leaderboard-name {
+            flex: 1;
+            font-size: 1.1em;
+            color: #ecf0f1;
+            margin: 0 15px;
+            font-weight: 500;
+        }
+
+        .leaderboard-deaths {
+            font-size: 1em;
+            color: #e74c3c;
+            font-weight: bold;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .leaderboard-empty {
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+            padding: 40px 20px;
+            font-size: 1.1em;
+        }
+
+        .leaderboard-close-btn {
+            background: linear-gradient(45deg, #FF5722, #E64A19);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .leaderboard-close-btn:hover {
+            background: linear-gradient(45deg, #E64A19, #FF5722);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #player-name::placeholder {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        /* 中等屏幕设备上的CEO仪式优化 */
+        @media (max-width: 850px) and (min-width: 481px) {
+            .ceo-ceremony-overlay {
+                padding: 15px 10px;
+                justify-content: flex-start;
+                min-height: 100vh;
+            }
+            
+            .mt-logo {
+                font-size: 6em;
+                margin-bottom: 20px;
+            }
+            
+            .ceo-title {
+                font-size: 2.2em;
+                margin-bottom: 15px;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            .ceo-subtitle {
+                font-size: 1.2em;
+                margin-bottom: 25px;
+                text-align: center;
+                padding: 0 20px;
+                max-width: 95%;
+            }
+            
+            .ceo-welcome {
+                font-size: 1em;
+                margin-bottom: 25px;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            .mt-values {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 25px;
+                padding: 0 20px;
+                max-width: 95%;
+            }
+            
+            .continue-btn {
+                margin: 25px 20px;
+                max-width: 320px;
+            }
+        }
+
+        /* 小屏幕设备上的CEO对话框优化 */
+        @media (max-width: 850px) {
+            .zack-success-overlay {
+                align-items: flex-start;
+                padding: 10px;
+            }
+            
+            .zack-success-box {
+                padding: 20px;
+                max-width: 95%;
+                width: 95%;
+                max-height: none;
+                overflow-y: visible;
+                margin: 10px auto;
+                position: relative;
+            }
+            
+            .zack-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+                margin: 0 auto 15px;
+            }
+            
+            .zack-success-title {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+            }
+            
+            .zack-success-content {
+                font-size: 1em;
+                line-height: 1.4;
+                margin-bottom: 20px;
+            }
+            
+            .name-input-container {
+                margin: 15px 0;
+                padding: 15px;
+            }
+            
+            .name-input-container label {
+                font-size: 1em;
+                margin-bottom: 8px;
+            }
+            
+            #player-name {
+                max-width: 250px;
+                padding: 10px 12px;
+                font-size: 1em;
+            }
+            
+            .zack-success-btn {
+                padding: 12px 30px;
+                font-size: 1.1em;
+                margin-top: 10px;
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+
+        /* 超小屏幕设备优化 */
+        @media (max-width: 480px) {
+            .zack-success-overlay {
+                align-items: flex-start;
+                padding: 5px;
+            }
+            
+            .zack-success-box {
+                padding: 15px;
+                max-width: 98%;
+                width: 98%;
+                margin: 5px auto;
+            }
+            
+            .zack-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                margin: 0 auto 10px;
+            }
+            
+            .zack-success-title {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            
+            .zack-success-content {
+                font-size: 0.9em;
+                line-height: 1.3;
+                margin-bottom: 15px;
+            }
+            
+            .name-input-container {
+                margin: 10px 0;
+                padding: 10px;
+            }
+            
+            .name-input-container label {
+                font-size: 0.9em;
+                margin-bottom: 6px;
+            }
+            
+            #player-name {
+                max-width: 200px;
+                padding: 8px 10px;
+                font-size: 0.9em;
+            }
+            
+            .zack-success-btn {
+                padding: 10px 20px;
+                font-size: 1em;
+                margin-top: 8px;
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            /* CEO仪式页面小屏幕优化 */
+            .ceo-ceremony-overlay {
+                justify-content: flex-start;
+                padding: 10px 5px;
+                min-height: 100vh;
+            }
+            
+            .mt-logo {
+                font-size: 4em;
+                margin-bottom: 15px;
+            }
+            
+            .ceo-title {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+                text-align: center;
+                padding: 0 10px;
+            }
+            
+            .ceo-subtitle {
+                font-size: 1em;
+                margin-bottom: 20px;
+                text-align: center;
+                padding: 0 15px;
+                max-width: 90%;
+            }
+            
+            .ceo-welcome {
+                font-size: 0.9em;
+                margin-bottom: 20px;
+                text-align: center;
+                padding: 0 15px;
+            }
+            
+            .mt-values {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 20px;
+                padding: 0 10px;
+                max-width: 90%;
+            }
+            
+            .value-item {
+                text-align: center;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                margin: 0;
+            }
+            
+            .value-icon {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+            
+            .value-item > div:first-of-type {
+                font-size: 0.9em;
+                font-weight: bold;
+                margin-bottom: 3px;
+            }
+            
+            .value-desc {
+                font-size: 0.7em;
+                color: #bbb;
+                line-height: 1.2;
+            }
+            
+            .continue-btn {
+                font-size: 1em;
+                padding: 12px 20px;
+                margin: 20px 10px;
+                max-width: 280px;
+                width: calc(100% - 20px);
+            }
+        }
+
+        /* CEO就职仪式动画 */
+        .ceo-ceremony-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            animation: ceremonyFadeIn 1s ease-in;
+            overflow-y: auto;
+            padding: 20px 10px;
+            box-sizing: border-box;
+        }
+
+        @keyframes ceremonyFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .mt-logo {
+            font-size: 8em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FF6B35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes logoGlow {
+            0% { 
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            100% { 
+                transform: scale(1.05);
+                filter: brightness(1.2);
+            }
+        }
+
+        .ceo-title {
+            font-size: 3em;
+            color: #FFD700;
+            margin-bottom: 20px;
+            animation: titleSlideIn 1.5s ease-out 0.5s both;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @keyframes titleSlideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ceo-subtitle {
+            font-size: 1.5em;
+            color: #ecf0f1;
+            margin-bottom: 40px;
+            animation: subtitleFadeIn 1.5s ease-out 1s both;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        @keyframes subtitleFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ceo-welcome {
+            font-size: 1.3em;
+            color: #e74c3c;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            border: 2px solid #e74c3c;
+            animation: welcomeFadeIn 1.5s ease-out 1.5s both;
+            text-align: center;
+            max-width: 700px;
+        }
+
+        @keyframes welcomeFadeIn {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fireworks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: fireworkExplode 2s ease-out infinite;
+        }
+
+        @keyframes fireworkExplode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .mt-values {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            animation: valuesSlideUp 2s ease-out 1.5s both;
+        }
+
+        @keyframes valuesSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .value-item {
+            text-align: center;
+            color: #bdc3c7;
+            font-size: 1.1em;
+            max-width: 200px;
+        }
+
+        .value-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .value-desc {
+            font-size: 0.9em;
+            color: #95a5a6;
+            margin-top: 5px;
+            line-height: 1.3;
+        }
+
+        .continue-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-top: 40px;
+            animation: btnAppear 2s ease-out 2s both;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        @keyframes btnAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .continue-btn:hover {
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+        .spike {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid #696969;
+            bottom: 0;
+        }
+        .moving-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/invisible.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            opacity: 0.8;
+            animation: movingTrapFloat 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes movingTrapFloat {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(-5px) scale(1.05); }
+        }
+        
+        /* 新的陷阱类型样式 */
+        .invisible-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/invisible.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .invisible-trap.revealed {
+            opacity: 0.8;
+        }
+        
+        .teleport-trap {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('images/traps/teleport.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: teleportSpin 2s linear infinite;
+        }
+        
+        @keyframes teleportSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hunter-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/hunter.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: hunterGlow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes hunterGlow {
+            0% { filter: drop-shadow(0 0 5px #FF4500); }
+            100% { filter: drop-shadow(0 0 15px #FF4500); }
+        }
+        
+        .blink-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/blink.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: blinkTrap 3s ease-in-out infinite;
+        }
+        
+        @keyframes blinkTrap {
+            0%, 40% { opacity: 1; }
+            50%, 90% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        .gravity-trap {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-image: url('images/traps/gravity.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: gravityPull 2s ease-in-out infinite;
+        }
+        
+        @keyframes gravityPull {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .split-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/split.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+        }
+        
+        .mirror-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/mirror.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: mirrorShine 2s linear infinite;
+        }
+        
+        @keyframes mirrorShine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .freeze-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/freeze.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: freezeEffect 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes freezeEffect {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+        }
+        
+        .bounce-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/bounce.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: bounceEffect 1s ease-in-out infinite;
+        }
+        
+        @keyframes bounceEffect {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .shrink-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/shrink.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: shrinkEffect 2s ease-in-out infinite;
+        }
+        
+        @keyframes shrinkEffect {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.5); }
+        }
+        
+        .speed-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/speed.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: speedEffect 0.5s linear infinite;
+        }
+        
+        @keyframes speedEffect {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.1); }
+        }
+        
+        .clone-trap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/traps/clone.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 2;
+            animation: cloneEffect 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes cloneEffect {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* 钥匙样式 */
+        .key {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            animation: keyFloat 2s ease-in-out infinite;
+            cursor: pointer;
+            filter: drop-shadow(0 0 8px #FFD700);
+        }
+        
+        @keyframes keyFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+        
+        .key:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 12px #FFD700);
+        }
+        
+        /* 爆炸特效 */
+        .explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            z-index: 15;
+            pointer-events: none;
+        }
+        
+        .explosion::before {
+            content: '💥';
+            font-size: 80px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: explode 0.8s ease-out;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        /* 过关特效 */
+        .level-complete {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            z-index: 15;
+            pointer-events: none;
+        }
+        
+        .level-complete::before {
+            content: '✨';
+            font-size: 60px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: sparkle 1s ease-out;
+        }
+        
+        @keyframes sparkle {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>拯救Zack - MT大冒险</h1>
+    <div class="level-info">
+        第 <span id="level">1</span> 关 
+        <span id="progress-info">(最高记录: 第 <span id="max-level">1</span> 关)</span>
+        <span id="loop-info">🔄 第 <span id="loop-count">3</span> 次循环</span>
+        <span id="key-info" style="display: none;">🗝️ 钥匙: <span id="key-count">0/3</span></span>
+    </div>
+    <div class="location-info">
+        📍 当前位置: <span id="location">公司前台</span>
+    </div>
+    <div id="message"></div>
+    <div id="game-container">
+        <div id="player"></div>
+        <div id="door"></div>
+        <!-- 陷阱将由JS动态生成 -->
+    </div>
+    <div class="controls">
+        <button id="restart-btn">重新开始当前关</button>
+        <button id="next-btn" class="hidden">下一关</button>
+        <button id="level-select-btn">选择关卡</button>
+                        <button id="sound-toggle-btn">🔊 音效</button>
+                <button id="music-toggle-btn">🎵 音乐</button>
+                <button id="leaderboard-btn">🏆 排行榜</button>
+        <button id="reset-progress-btn">重置进度</button>
+    </div>
+    <div id="level-select" class="hidden">
+        <h3>选择关卡 (已解锁: 第1-<span id="unlocked-levels">1</span>关)</h3>
+        <div id="level-buttons"></div>
+        <button id="close-select-btn">关闭</button>
+    </div>
+    
+    <!-- 移动端虚拟方向键 -->
+    <div class="mobile-controls">
+        <div class="dpad">
+            <div class="dpad-btn dpad-up" data-key="ArrowUp">↑</div>
+            <div class="dpad-btn dpad-down" data-key="ArrowDown">↓</div>
+            <div class="dpad-btn dpad-left" data-key="ArrowLeft">←</div>
+            <div class="dpad-btn dpad-right" data-key="ArrowRight">→</div>
+        </div>
+    </div>
+    
+    <!-- 触摸操作提示 -->
+    <div class="touch-hint" id="touch-hint">
+        📱 <strong>拖拽角色</strong>在游戏区域内移动<br>
+        角色会跟随你的手指实时移动<br>
+        点击钥匙收集，右下角有虚拟方向键备用
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            currentLevel: 1,
+            maxLevel: 10,
+            maxUnlockedLevel: 1, // 最高解锁关卡
+            player: { x: 50, y: 250 },
+            isMoving: false,
+            gameOver: false,
+            traps: [],
+            movingTraps: [],
+            specialTraps: [], // 特殊陷阱数组
+            keys: [], // 当前关卡的钥匙
+            collectedKeys: 0, // 已收集的钥匙数量
+            requiredKeys: 0, // 需要收集的钥匙数量
+            playerFrozen: false, // 玩家是否被冰冻
+            freezeEndTime: 0, // 冰冻结束时间
+            levelLayouts: {}, // 存储每关的陷阱布局
+            sessionId: Date.now() + '_' + Math.random().toString(36).substr(2, 9) // 会话ID
+        };
+
+        // 服务器端统计系统（完全静默，零影响）
+        const gameStats = {
+            sessionId: null,
+            // 根据部署环境自动选择统计服务器地址
+            statsServerUrl: window.location.hostname === 'xulilong.github.io' 
+                ? 'https://rebirth-gyuv.onrender.com'  // GitHub Pages 使用 Render 服务器
+                : window.location.protocol === 'file:' 
+                    ? 'http://localhost:3000'           // 本地文件访问时使用 localhost
+                    : window.location.origin,           // 其他情况使用同域
+            enabled: true, // 统计开关
+            
+            // 初始化统计系统（完全静默，不阻塞游戏启动）
+            async init() {
+                // 使用setTimeout确保统计初始化不会阻塞游戏启动
+                setTimeout(async () => {
+                    try {
+                        await this.trackNewPlayer();
+                    } catch (e) {
+                        // 完全静默处理，不输出任何信息
+                    }
+                }, 100); // 延迟100ms执行，确保游戏先启动
+            },
+
+            // 生成临时会话ID（如果服务器会话ID获取失败）
+            generateTempSessionId() {
+                if (!this.sessionId) {
+                    this.sessionId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                }
+                return this.sessionId;
+            },
+
+            // 发送统计数据到服务器（完全静默，不影响游戏体验）
+            async sendStats(endpoint, data = {}) {
+                // 确保有会话ID
+                const sessionId = this.sessionId || this.generateTempSessionId();
+                
+                // 使用Promise.race实现超时控制，避免长时间等待
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('timeout')), 2000); // 2秒超时
+                });
+                
+                const fetchPromise = fetch(`${this.statsServerUrl}/api/stats/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        referrer: document.referrer || 'direct',
+                        ...data
+                    })
+                });
+                
+                try {
+                    // 使用Promise.race确保最多等待2秒
+                    const response = await Promise.race([fetchPromise, timeoutPromise]);
+                    
+                    if (response && response.ok) {
+                        return await response.json();
+                    }
+                } catch (e) {
+                    // 完全静默处理，不输出任何日志
+                }
+                return null;
+            },
+
+            // 追踪新玩家（完全静默）
+            async trackNewPlayer() {
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('timeout')), 2000); // 2秒超时
+                });
+                
+                const fetchPromise = fetch(`${this.statsServerUrl}/api/stats/new-player`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        language: navigator.language,
+                        screenSize: `${screen.width}x${screen.height}`
+                    })
+                });
+                
+                try {
+                    const response = await Promise.race([fetchPromise, timeoutPromise]);
+                    
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        this.sessionId = result.sessionId;
+                    }
+                } catch (e) {
+                    // 完全静默处理，不输出任何日志或错误信息
+                }
+            },
+
+            // 追踪游戏开始（异步非阻塞）
+            trackGameStart() {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('game-start'), 0);
+            },
+
+            // 追踪关卡尝试（异步非阻塞）
+            trackLevelAttempt(level, attemptCount) {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('level-attempt', { level, attemptCount }), 0);
+            },
+
+            // 追踪关卡完成（异步非阻塞）
+            trackLevelComplete(level, attemptCount) {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('level-complete', { level, attemptCount }), 0);
+            },
+
+            // 追踪钥匙收集（异步非阻塞）
+            trackKeyCollected() {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('key-collected'), 0);
+            },
+
+            // 追踪CEO晋升（异步非阻塞）
+            trackCEOPromotion() {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('ceo-promotion'), 0);
+            },
+
+            // 更新玩家记录（异步非阻塞）
+            updatePlayerRecord(level, deaths, playerName = null, isCompleted = false) {
+                if (!this.enabled) return;
+                setTimeout(() => this.sendStats('player-record', { 
+                    level, 
+                    deaths, 
+                    playerName, 
+                    isCompleted 
+                }), 0);
+            }
+        };
+
+        // 本地存储相关函数
+        function saveProgress() {
+            try {
+                localStorage.setItem('wizardGame_maxLevel', gameState.maxUnlockedLevel);
+                localStorage.setItem('wizardGame_currentLevel', gameState.currentLevel);
+                localStorage.setItem('wizardGame_loopCount', loopCount);
+            } catch (e) {
+                console.log('无法保存进度:', e);
+            }
+        }
+
+        function loadProgress() {
+            try {
+                const savedMaxLevel = localStorage.getItem('wizardGame_maxLevel');
+                const savedCurrentLevel = localStorage.getItem('wizardGame_currentLevel');
+                const savedLoopCount = localStorage.getItem('wizardGame_loopCount');
+                
+                if (savedMaxLevel) {
+                    gameState.maxUnlockedLevel = parseInt(savedMaxLevel);
+                }
+                if (savedCurrentLevel) {
+                    gameState.currentLevel = Math.min(parseInt(savedCurrentLevel), gameState.maxUnlockedLevel);
+                }
+                if (savedLoopCount) {
+                    loopCount = parseInt(savedLoopCount);
+                } else {
+                    loopCount = 3; // 默认值
+                }
+            } catch (e) {
+                console.log('无法加载进度:', e);
+            }
+        }
+
+        function resetProgress() {
+            try {
+                localStorage.removeItem('wizardGame_maxLevel');
+                localStorage.removeItem('wizardGame_currentLevel');
+                localStorage.removeItem('wizardGame_loopCount');
+                gameState.maxUnlockedLevel = 1;
+                gameState.currentLevel = 1;
+                loopCount = 3; // 重置循环次数
+                updateProgressDisplay(); // 更新显示
+            } catch (e) {
+                console.log('无法重置进度:', e);
+            }
+        }
+
+        // 关卡位置信息 - MT公司探索之旅
+        const levelLocations = {
+            1: "🏢 公司前台 - 初来乍到",
+            2: "🍽️ 第一食堂 - 觅食时光", 
+            3: "📋 会议室-文明 - 文化洗礼",
+            4: "🧩 会议室-乐高 - 创意空间",
+            5: "🏝️ 会议室-回音群岛 - 思维碰撞",
+            6: "🍜 第二食堂 - 能量补给",
+            7: "💻 HOP项目组 - 技术前沿",
+            8: "🚀 JUMP项目组 - 敏捷开发",
+            9: "⚙️ 技术部核心 - 系统中枢",
+            10: "👑 CEO办公室 - 最终决战"
+        };
+
+        // 关卡对话信息 - 深度剧情体验
+        const levelDialogs = {
+            1: {
+                title: "🔄 公司前台-时空循环的开始",
+                content: () => `欢迎来到Magic Tavern！咦？这种似曾相识的感觉...等等，这已经是第${loopCount}次循环了？！我是不是在做梦？还是昨晚加班太晚产生幻觉了？！
+
+🎮 任务提示：CEO Zack可能遇到了麻烦，需要你的帮助！
+💡 操作指南：用方向键控制角色移动，避开红色障碍物，到达绿色出口就能进入下一关！`
+            },
+            2: {
+                title: "🍽️ MT人的日常-干饭第一",
+                content: `循环？开什么玩笑？作为一个打工人，还是干饭重要！12点半了，冲！！！
+
+🍜 关卡特色：在美食的诱惑中保持专注，不要被香味分散注意力！
+⚠️ 难度提升：出现了移动的障碍物！它们就像忙碌的服务员一样来回穿梭，小心别撞上！`
+            },
+            3: {
+                title: "📋 文明-企业文化的力量",
+                content: `文明会议室，墙上贴着企业文化标语，看起来很有精神！真诚、进取、负责、齐心协力...这些词我都认识，组合在一起就很有力量的感觉。
+
+🗝️ 新任务：咦？会议室里散落着一些金色的钥匙！看起来很重要的样子，我需要收集3把钥匙才能进入下一关！
+⚡ 小小挑战：会议室里的障碍物变多了，就像开会时突然冒出的新想法一样，需要灵活应对！`
+            },
+            4: {
+                title: "🧩 乐高-创意无限的乐高空间",
+                content: `乐高会议室！哇，这里的乐高模型好精致，一定花了不少心思！那个城堡模型...咦，这个结构怎么这么眼熟？该不会是按我们的系统架构搭的吧？
+
+🗝️ 继续收集：这里也有3把钥匙需要收集！看来这些钥匙对拯救Zack很重要！
+🎨 游戏心得：就像搭乐高需要耐心一样，通过这些障碍也需要细心规划路线！`
+            },
+            5: {
+                title: "🏝️ 回音群岛-智慧碰撞",
+                content: `回音群岛会议室，这名字起得真有诗意！一听就知道是个有文化的人想出来的。墙上的海洋主题装饰画很漂亮，蓝色调看着就让人心情舒畅。"回音"这个概念也很有意思！
+
+🗝️ 最后收集：这是最后一个需要收集钥匙的房间了！收集完这3把钥匙，我就能继续前进拯救Zack！
+🌪️ 策略升级：就像在岛屿间航行一样，需要找到最佳路径来应对这些越来越复杂的障碍！`
+            },
+            6: {
+                title: "🍜 第二食堂-能量补给站",
+                content: `一转眼功夫又到饭点了，去吃点好吃的！第二食堂，这里选择更多，人气也更旺！干饭干饭！！！
+
+⚡ 活力满满：吃饱了果然精神百倍！不过这些障碍物好像也跟着"升级"了，挑战更大了！`
+            },
+            7: {
+                title: "💻 HOP项目组 - 技术前沿",
+                content: `HOP项目组，大屏幕上各种花里胡哨的图表，看起来很厉害的样子，程序员们在疯狂敲键盘，不知道是在写代码还是在聊天摸鱼。
+
+🚨 Bug警报：系统开始报警了！这些移动的障碍物该不会就是传说中的"线上Bug"吧？`
+            },
+            8: {
+                title: "🚀 JUMP项目组 - 敏捷开发",
+                content: `JUMP项目组！这名字一听就很有活力，充满了"跳跃"的感觉！
+
+🏃‍♂️ 速度挑战：在这种快节奏的环境下，我也要加快速度了！这些障碍物变化真快！`
+            },
+            9: {
+                title: "⚙️ 技术部 - 系统中枢",
+                content: `技术部核心区域！这里就是MT的"大脑中枢"！嗡嗡作响的服务器们正在辛勤工作，就像永不停歇的心脏！
+
+⚠️ 终极挑战：哇，系统警报声此起彼伏！看来真的遇到大问题了，是时候展现真正的技术了！`
+            },
+            10: {
+                title: "🔥 地狱模式 - 终极挑战",
+                content: `⚠️ 警告：你即将进入地狱模式！这是最终的考验！
+
+💀 CEO办公室已被恶魔化，空气中弥漫着危险的气息...
+
+🔥 这里的一切都变得更加危险和诡异，陷阱密布，危机四伏！
+
+👑 但是Zack就在这里等着你的拯救！只有真正的勇士才能通过这最后的试炼！
+
+🎯 最后的使命：准备好迎接你人生中最大的挑战了吗？`
+            }
+        };
+
+        // DOM元素
+        const levelDisplay = document.getElementById('level');
+        const maxLevelDisplay = document.getElementById('max-level');
+        const unlockedLevelsDisplay = document.getElementById('unlocked-levels');
+        const locationDisplay = document.getElementById('location');
+        const messageDisplay = document.getElementById('message');
+        const loopCountDisplay = document.getElementById('loop-count');
+        const keyInfoDisplay = document.getElementById('key-info');
+        const keyCountDisplay = document.getElementById('key-count');
+        const gameContainer = document.getElementById('game-container');
+        const player = document.getElementById('player');
+        const door = document.getElementById('door');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const levelSelectBtn = document.getElementById('level-select-btn');
+        const soundToggleBtn = document.getElementById('sound-toggle-btn');
+        const musicToggleBtn = document.getElementById('music-toggle-btn');
+        const resetProgressBtn = document.getElementById('reset-progress-btn');
+        const levelSelectModal = document.getElementById('level-select');
+        const levelButtonsContainer = document.getElementById('level-buttons');
+        const closeSelectBtn = document.getElementById('close-select-btn');
+
+        // 游戏变量
+        let gameWidth = 800;
+        let gameHeight = 500;
+        let loopCount = 3; // 初始循环次数为3
+        let doorRect = door.getBoundingClientRect();
+        let basePlayerSpeed = 8;
+        let playerSpeed = 8;
+        let animationFrame;
+        let trapInterval;
+        
+        // 玩家记录追踪
+        let levelDeaths = {}; // 记录每关的死亡次数
+        let currentLevelDeaths = 0; // 当前关卡的死亡次数
+        
+        // 动态调整游戏区域大小
+        function updateGameDimensions() {
+            const container = document.getElementById('game-container');
+            const rect = container.getBoundingClientRect();
+            gameWidth = rect.width;
+            gameHeight = rect.height;
+            doorRect = door.getBoundingClientRect();
+            
+            // 在小屏幕上调整玩家和陷阱的大小
+            if (window.innerWidth <= 480) {
+                // 超小屏幕
+                player.style.transform = 'scale(0.8)';
+            } else if (window.innerWidth <= 850) {
+                // 小屏幕
+                player.style.transform = 'scale(0.9)';
+            } else {
+                // 正常屏幕
+                player.style.transform = 'scale(1)';
+            }
+        }
+        
+        // 音效系统
+        let audioContext;
+        let soundEnabled = true;
+        
+        // 背景音乐系统
+        let backgroundMusic;
+        let musicEnabled = true;
+        let musicVolume = 0.1; // 背景音乐音量（10%）
+
+        // 显示对话框
+        function showDialog(title, content, callback) {
+            const overlay = document.createElement('div');
+            overlay.className = 'dialog-overlay';
+            
+            overlay.innerHTML = `
+                <div class="dialog-box">
+                    <div class="dialog-title">${title}</div>
+                    <div class="dialog-content">${content}</div>
+                    <button class="dialog-btn">开始冒险！</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            const btn = overlay.querySelector('.dialog-btn');
+            btn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                if (callback) callback();
+            });
+        }
+
+        // 显示Zack拯救成功对话框
+        function showZackSuccessDialog() {
+            const overlay = document.createElement('div');
+            overlay.className = 'zack-success-overlay';
+            
+            overlay.innerHTML = `
+                <div class="zack-success-box">
+                    <div class="zack-avatar" id="ceo-avatar"></div>
+                    <div class="zack-success-title">🎉 拯救成功！</div>
+                    <div class="zack-success-content">
+                        恭喜你！经过重重困难，你终于成功拯救了Zack！
+                        <br><br>
+                        <strong>Zack:</strong> "太感谢你了！我被困在这个循环中好久了！你展现出了你的智慧和敢于冒险的精神！"
+                        <br><br>
+                        <strong>Zack:</strong> "从今天起，你就是Magic Tavern的新任CEO！让我们一起秉承'真诚、进取、负责、齐心协力'的理念，带领公司走向更美好的未来！"
+                        <br><br>
+                        <strong>Zack:</strong> "对了，能告诉我你的名字吗？我想在就职典礼上正式介绍你！"
+                        <br><br>
+                        <div class="name-input-container">
+                            <label for="player-name">请输入您的姓名：</label>
+                            <input type="text" id="player-name" placeholder="输入您的姓名" maxlength="20" />
+                        </div>
+                        <br>
+                        🏆 <strong>成就解锁：</strong> 循环终结者 - 成功打破时间循环，拯救CEO！
+                        <br>
+                        👑 <strong>新身份：</strong> MT公司CEO
+                    </div>
+                    <button class="zack-success-btn">接受CEO职位！</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // 检测CEO头像图片是否存在，如果不存在则使用emoji
+            const ceoAvatar = overlay.querySelector('#ceo-avatar');
+            const testImg = new Image();
+            testImg.onload = function() {
+                // 图片加载成功，使用背景图片
+                console.log('CEO头像加载成功');
+            };
+            testImg.onerror = function() {
+                // 图片加载失败，使用emoji作为后备
+                console.log('CEO头像加载失败，使用emoji后备');
+                ceoAvatar.classList.add('fallback');
+                ceoAvatar.textContent = '👨‍💼';
+            };
+            testImg.src = 'images/zack.jpeg';
+            
+            // 自动聚焦到输入框
+            const nameInput = overlay.querySelector('#player-name');
+            setTimeout(() => {
+                nameInput.focus();
+            }, 500);
+            
+            // 支持回车键确认
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleCEOAcceptance();
+                }
+            });
+            
+            const btn = overlay.querySelector('.zack-success-btn');
+            btn.addEventListener('click', handleCEOAcceptance);
+            
+            function handleCEOAcceptance() {
+                const playerName = nameInput.value.trim() || '勇敢的冒险者';
+                
+                // 确保最后一关的死亡次数也被记录
+                levelDeaths[10] = currentLevelDeaths;
+                
+                // 计算总死亡次数
+                const totalDeaths = Object.values(levelDeaths).reduce((sum, deaths) => sum + deaths, 0);
+                
+                // 发送完整的游戏完成记录到服务器
+                // 这里我们发送一个特殊的完整游戏记录，包含所有关卡的死亡数据
+                if (gameStats.enabled) {
+                    setTimeout(() => gameStats.sendStats('game-complete', { 
+                        playerName: playerName,
+                        totalDeaths: totalDeaths,
+                        levelDeaths: levelDeaths,
+                        completedAt: new Date().toISOString()
+                    }), 0);
+                }
+                
+                document.body.removeChild(overlay);
+                // 显示CEO就职仪式，传入玩家姓名
+                showCEOCeremony(playerName);
+            }
+        }
+
+        // 显示CEO就职仪式
+        function showCEOCeremony(playerName = '勇敢的冒险者') {
+            const overlay = document.createElement('div');
+            overlay.className = 'ceo-ceremony-overlay';
+            
+            overlay.innerHTML = `
+                <div class="fireworks"></div>
+                <div class="mt-logo">MT</div>
+                <div class="ceo-title">👑 ${playerName} CEO就职典礼</div>
+                <div class="ceo-subtitle">
+                    热烈欢迎 <strong>${playerName}</strong> 加入Magic Tavern领导团队！<br>
+                    秉承"真诚、进取、负责、齐心协力"的价值观，<br>
+                    让我们一起创造更美好的未来！
+                </div>
+                <div class="ceo-welcome">
+                    🎊 <strong>Zack:</strong> "各位同事，让我们热烈欢迎我们的新任CEO - ${playerName}！"<br>
+                    👏 <strong>全体员工:</strong> "欢迎 ${playerName} CEO！"
+                </div>
+                <div class="mt-values">
+                    <div class="value-item">
+                        <span class="value-icon">💎</span>
+                        <div>真诚 Sincere</div>
+                        <div class="value-desc">实事求是，主动沟通</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">🚀</span>
+                        <div>进取 Progressive</div>
+                        <div class="value-desc">持续学习，精益求精</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">🛡️</span>
+                        <div>负责 Reliable</div>
+                        <div class="value-desc">兢兢业业，勇于担当</div>
+                    </div>
+                    <div class="value-item">
+                        <span class="value-icon">🤝</span>
+                        <div>齐心协力 Team-oriented</div>
+                        <div class="value-desc">相互协助，大局为重</div>
+                    </div>
+                </div>
+                <button class="continue-btn">${playerName} 开始CEO之旅！</button>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // 创建烟花效果
+            createFireworks(overlay.querySelector('.fireworks'));
+            
+            // 创建彩带效果
+            createConfetti(overlay);
+            
+            const btn = overlay.querySelector('.continue-btn');
+            btn.addEventListener('click', () => {
+                // 追踪CEO晋升统计（完全静默，不影响游戏）
+                gameStats.trackCEOPromotion();
+                
+                document.body.removeChild(overlay);
+                // 跳转到游戏首页而不是重置游戏
+                redirectToHomepage(playerName);
+            });
+        }
+
+        // 跳转到游戏首页
+        function redirectToHomepage(playerName = '勇敢的冒险者') {
+            // 保存CEO晋升信息到localStorage，供首页使用
+            localStorage.setItem('ceo_promoted', 'true');
+            localStorage.setItem('ceo_name', playerName);
+            localStorage.setItem('promotion_time', new Date().toISOString());
+            
+            // 显示跳转提示
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                color: white;
+                text-align: center;
+                font-family: Arial, sans-serif;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 20px;">🎉</div>
+                <h2 style="font-size: 2rem; margin-bottom: 20px; color: #FFD700;">
+                    恭喜 ${playerName} 成为Magic Tavern CEO！
+                </h2>
+                <p style="font-size: 1.2rem; margin-bottom: 30px; color: #B0C4DE;">
+                    正在跳转到CEO游戏中心...
+                </p>
+                <div style="width: 200px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;">
+                    <div style="width: 0%; height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); 
+                                border-radius: 2px; animation: loadingBar 2s ease-out forwards;"></div>
+                </div>
+            `;
+            
+            // 添加加载动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes loadingBar {
+                    from { width: 0%; }
+                    to { width: 100%; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(overlay);
+            
+            // 2秒后跳转到首页
+            setTimeout(() => {
+                window.location.href = 'game_homepage.html';
+            }, 2000);
+        }
+
+        // 重置所有游戏数据和缓存
+        function resetAllGameData(playerName = '勇敢的冒险者') {
+            // 清除所有本地存储数据
+            localStorage.removeItem('wizardGame_currentLevel');
+            localStorage.removeItem('wizardGame_maxLevel');
+            localStorage.removeItem('wizardGame_loopCount');
+            localStorage.removeItem('wizardGame_soundEnabled');
+            localStorage.removeItem('wizardGame_musicEnabled');
+            localStorage.removeItem('wizardGame_musicVolume');
+            localStorage.removeItem('wizardGame_playerSpeed');
+            localStorage.removeItem('wizardGame_gameStarted');
+            
+            // 停止所有游戏循环和定时器
+            if (trapInterval) {
+                clearInterval(trapInterval);
+                trapInterval = null;
+            }
+            
+            // 重置游戏状态到初始状态
+            gameState = {
+                currentLevel: 1,
+                maxUnlockedLevel: 1,
+                gameOver: false,
+                player: { x: 50, y: 50 },
+                keys: [],
+                traps: []
+            };
+            
+            // 重置其他游戏变量
+            loopCount = 3;
+            playerSpeed = basePlayerSpeed;
+            gameStarted = false;
+            
+            // 重置死亡计数器
+            levelDeaths = {};
+            currentLevelDeaths = 0;
+            
+            // 清空游戏区域，移除所有陷阱和钥匙
+            const gameContainer = document.getElementById('game-container');
+            const elementsToRemove = gameContainer.querySelectorAll('.trap, .key, .moving-trap');
+            elementsToRemove.forEach(element => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            });
+            
+            // 重置玩家位置和样式
+            player.style.left = '50px';
+            player.style.top = '50px';
+            player.style.transform = 'scale(1)'; // 重置缩放
+            
+            // 重置游戏容器样式（移除地狱模式）
+            gameContainer.classList.remove('hell-mode');
+            
+            // 重置显示
+            messageDisplay.textContent = '欢迎来到拯救Zack - MT大冒险！点击开始游戏！';
+            updateProgressDisplay();
+            
+            // 重新显示开始按钮
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) {
+                startBtn.style.display = 'block';
+                startBtn.textContent = '开始游戏';
+            }
+            
+            // 隐藏其他按钮
+            const nextBtn = document.getElementById('nextBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (restartBtn) restartBtn.style.display = 'none';
+            
+            // 停止背景音乐并重置
+            if (backgroundMusic) {
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+            }
+            
+            // 重置音频设置
+            soundEnabled = true;
+            musicEnabled = true;
+            musicVolume = 0.1;
+            
+            // 更新按钮状态
+            updateSoundButton();
+            updateMusicButton();
+            
+            // 重新初始化游戏
+            initGame();
+            
+            // 显示重置完成信息
+            setTimeout(() => {
+                messageDisplay.textContent = `🎉 恭喜 ${playerName} 成为Magic Tavern CEO！秉承MT价值观，游戏已重置，准备开始新的冒险！`;
+                setTimeout(() => {
+                    messageDisplay.textContent = '欢迎来到拯救Zack - MT大冒险！点击开始游戏！';
+                }, 3000);
+            }, 500);
+        }
+
+        // 创建烟花效果
+        function createFireworks(container) {
+            const colors = ['#FFD700', '#FF6B35', '#FF1744', '#00E676', '#2196F3', '#9C27B0'];
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    firework.style.left = Math.random() * 100 + '%';
+                    firework.style.top = Math.random() * 100 + '%';
+                    firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    firework.style.animationDelay = Math.random() * 2 + 's';
+                    container.appendChild(firework);
+                    
+                    // 移除烟花元素
+                    setTimeout(() => {
+                        if (firework.parentNode) {
+                            firework.parentNode.removeChild(firework);
+                        }
+                    }, 2000);
+                }, i * 200);
+            }
+        }
+
+        // 创建彩带效果
+        function createConfetti(container) {
+            const colors = ['#FFD700', '#FF6B35', '#FF1744', '#00E676', '#2196F3', '#9C27B0'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    container.appendChild(confetti);
+                    
+                    // 移除彩带元素
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            confetti.parentNode.removeChild(confetti);
+                        }
+                    }, 5000);
+                }, i * 100);
+            }
+        }
+
+        // 初始化音频上下文
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                // 从本地存储加载音效设置
+                const savedSoundSetting = localStorage.getItem('wizardGame_soundEnabled');
+                if (savedSoundSetting !== null) {
+                    soundEnabled = savedSoundSetting === 'true';
+                }
+                updateSoundButton();
+                
+                // 初始化背景音乐
+                initBackgroundMusic();
+            } catch (e) {
+                console.log('音频不支持:', e);
+                soundEnabled = false;
+                updateSoundButton();
+            }
+        }
+
+        // 初始化背景音乐
+        function initBackgroundMusic() {
+            try {
+                // 尝试多种可能的文件名
+                const possiblePaths = [
+                    'background_music.wav',
+                    'backgroud_music.wav', // 用户提到的原始名称（可能有拼写错误）
+                    './background_music.wav',
+                    './backgroud_music.wav'
+                ];
+                
+                backgroundMusic = new Audio();
+                backgroundMusic.loop = true; // 循环播放
+                backgroundMusic.volume = musicVolume;
+                
+                // 从本地存储加载音乐设置
+                const savedMusicSetting = localStorage.getItem('wizardGame_musicEnabled');
+                const savedMusicVolume = localStorage.getItem('wizardGame_musicVolume');
+                
+                if (savedMusicSetting !== null) {
+                    musicEnabled = savedMusicSetting === 'true';
+                }
+                // 固定音量为10%，不从本地存储读取
+                musicVolume = 0.1;
+                backgroundMusic.volume = musicVolume;
+                
+                // 添加音频事件监听器
+                backgroundMusic.addEventListener('loadstart', () => {
+                    console.log('开始加载背景音乐...');
+                });
+                
+                backgroundMusic.addEventListener('canplaythrough', () => {
+                    console.log('背景音乐加载完成，可以播放');
+                    updateMusicButton();
+                    if (musicEnabled && !firstInteraction) {
+                        playBackgroundMusic();
+                    }
+                });
+                
+                backgroundMusic.addEventListener('error', (e) => {
+                    console.log('背景音乐加载失败:', e);
+                    console.log('当前尝试的文件路径:', backgroundMusic.src);
+                    // 尝试下一个文件路径
+                    tryNextMusicPath();
+                });
+                
+                backgroundMusic.addEventListener('play', () => {
+                    console.log('背景音乐开始播放');
+                });
+                
+                backgroundMusic.addEventListener('pause', () => {
+                    console.log('背景音乐暂停');
+                });
+                
+                // 开始尝试加载第一个路径
+                let currentPathIndex = 0;
+                
+                function tryNextMusicPath() {
+                    if (currentPathIndex < possiblePaths.length) {
+                        const path = possiblePaths[currentPathIndex];
+                        console.log('尝试加载音乐文件:', path);
+                        backgroundMusic.src = path;
+                        backgroundMusic.load();
+                        currentPathIndex++;
+                    } else {
+                        console.log('所有音乐文件路径都尝试失败');
+                        musicEnabled = false;
+                        updateMusicButton();
+
+                    }
+                }
+                
+                // 开始尝试第一个路径
+                tryNextMusicPath();
+                
+                updateMusicButton();
+                
+            } catch (e) {
+                console.log('背景音乐初始化失败:', e);
+                musicEnabled = false;
+                updateMusicButton();
+            }
+        }
+
+        // 播放背景音乐
+        function playBackgroundMusic() {
+            if (backgroundMusic && musicEnabled) {
+                console.log('尝试播放背景音乐, 音量:', backgroundMusic.volume);
+                console.log('音乐文件状态:', {
+                    src: backgroundMusic.src,
+                    readyState: backgroundMusic.readyState,
+                    paused: backgroundMusic.paused,
+                    currentTime: backgroundMusic.currentTime,
+                    duration: backgroundMusic.duration
+                });
+                
+                backgroundMusic.play().then(() => {
+                    console.log('背景音乐播放成功');
+                }).catch(e => {
+                    console.log('背景音乐播放失败:', e);
+                    if (e.name === 'NotAllowedError') {
+                        console.log('浏览器阻止了自动播放，需要用户交互');
+
+                    }
+                });
+            } else {
+                console.log('播放条件不满足:', {
+                    hasBackgroundMusic: !!backgroundMusic,
+                    musicEnabled: musicEnabled
+                });
+            }
+        }
+
+        // 暂停背景音乐
+        function pauseBackgroundMusic() {
+            if (backgroundMusic) {
+                backgroundMusic.pause();
+            }
+        }
+
+        // 切换背景音乐开关
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            localStorage.setItem('wizardGame_musicEnabled', musicEnabled);
+            
+            if (musicEnabled) {
+                console.log('用户手动启用背景音乐');
+                playBackgroundMusic();
+            } else {
+                console.log('用户手动禁用背景音乐');
+                pauseBackgroundMusic();
+            }
+            
+            updateMusicButton();
+        }
+
+
+
+        // 切换音效开关
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('wizardGame_soundEnabled', soundEnabled);
+            updateSoundButton();
+            
+            // 播放测试音效
+            if (soundEnabled) {
+                playClickSound();
+            }
+        }
+
+        // 更新音效按钮显示
+        function updateSoundButton() {
+            if (soundToggleBtn) {
+                soundToggleBtn.textContent = soundEnabled ? '🔊 音效' : '🔇 音效';
+                soundToggleBtn.style.opacity = soundEnabled ? '1' : '0.6';
+            }
+        }
+
+        // 更新背景音乐按钮显示
+        function updateMusicButton() {
+            if (musicToggleBtn) {
+                musicToggleBtn.textContent = musicEnabled ? '🎵 音乐' : '🔇 音乐';
+                musicToggleBtn.style.opacity = musicEnabled ? '1' : '0.6';
+            }
+        }
+
+        // 显示排行榜
+        async function showLeaderboard() {
+            try {
+                // 使用后端服务器地址
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? '/api/leaderboard?limit=10'
+                    : 'https://rebirth-gyuv.onrender.com/api/leaderboard?limit=10';
+                const response = await fetch(apiUrl);
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || '获取排行榜失败');
+                }
+                
+                const leaderboard = result.data.leaderboard || [];
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'leaderboard-overlay';
+                
+                let leaderboardHTML = '';
+                if (leaderboard.length === 0) {
+                    leaderboardHTML = '<div class="leaderboard-empty">🎮 暂无通关记录<br/>成为第一个通关的勇士吧！</div>';
+                } else {
+                    leaderboardHTML = '<div class="leaderboard-list">';
+                    leaderboard.forEach((player, index) => {
+                        const rank = index + 1;
+                        const rankClass = rank <= 3 ? `rank-${rank}` : '';
+                        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                        
+                        leaderboardHTML += `
+                            <div class="leaderboard-item ${rankClass}">
+                                <div class="leaderboard-rank ${rankClass}">${rankEmoji}${rank}</div>
+                                <div class="leaderboard-name">${player.playerName}</div>
+                                <div class="leaderboard-deaths">💀 ${player.totalDeaths}</div>
+                            </div>
+                        `;
+                    });
+                    leaderboardHTML += '</div>';
+                }
+                
+                overlay.innerHTML = `
+                    <div class="leaderboard-box">
+                        <div class="leaderboard-title">
+                            🏆 通关排行榜
+                        </div>
+                        ${leaderboardHTML}
+                        <button class="leaderboard-close-btn">关闭</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(overlay);
+                
+                const closeBtn = overlay.querySelector('.leaderboard-close-btn');
+                closeBtn.addEventListener('click', () => {
+                    document.body.removeChild(overlay);
+                });
+                
+                // 点击背景关闭
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('获取排行榜失败:', error);
+                showDialog('获取排行榜失败', '无法连接到服务器，请稍后再试。');
+            }
+        }
+
+
+
+        // 生成爆炸音效
+        function playExplosionSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 爆炸音效：低频噪音
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // 生成过关音效
+        function playSuccessSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            // 播放一系列上升的音符
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            
+            notes.forEach((frequency, index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.15);
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime + index * 0.15);
+                gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + index * 0.15 + 0.05);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + index * 0.15 + 0.3);
+                
+                oscillator.start(audioContext.currentTime + index * 0.15);
+                oscillator.stop(audioContext.currentTime + index * 0.15 + 0.3);
+            });
+        }
+
+        // 生成按键音效
+        function playClickSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+        
+        // 键盘状态追踪
+        const keys = {
+            ArrowUp: false,
+            ArrowDown: false,
+            ArrowLeft: false,
+            ArrowRight: false
+        };
+
+        // 更新进度显示
+        function updateProgressDisplay() {
+            maxLevelDisplay.textContent = gameState.maxUnlockedLevel;
+            unlockedLevelsDisplay.textContent = gameState.maxUnlockedLevel;
+            loopCountDisplay.textContent = loopCount;
+        }
+
+        // 创建关卡选择按钮
+        function createLevelButtons() {
+            levelButtonsContainer.innerHTML = '';
+            
+            for (let i = 1; i <= gameState.maxLevel; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = 'level-btn';
+                
+                if (i <= gameState.maxUnlockedLevel) {
+                    if (i === gameState.currentLevel) {
+                        btn.className += ' current';
+                    } else {
+                        btn.className += ' unlocked';
+                    }
+                    btn.onclick = () => selectLevel(i);
+                } else {
+                    btn.className += ' locked';
+                    btn.disabled = true;
+                }
+                
+                levelButtonsContainer.appendChild(btn);
+            }
+        }
+
+        // 选择关卡
+        function selectLevel(level) {
+            if (level <= gameState.maxUnlockedLevel) {
+                playClickSound();
+                gameState.currentLevel = level;
+                saveProgress();
+                levelSelectModal.classList.add('hidden');
+                startLevel();
+            }
+        }
+
+        // 开始关卡
+        function startLevel() {
+            // 追踪游戏开始统计（完全静默，不影响游戏）
+            gameStats.trackGameStart();
+            
+            gameState.gameOver = false;
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
+            
+            messageDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的所有陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            setupLevel();
+            updateProgressDisplay();
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 初始化音频系统
+            initAudio();
+            
+            // 初始化统计系统（完全静默，不影响游戏）
+            gameStats.init();
+            
+            // 更新游戏区域尺寸
+            updateGameDimensions();
+            
+            // 加载保存的进度
+            loadProgress();
+            
+            gameState.gameOver = false;
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
+            
+            messageDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            
+            // 确保关卡选择器是隐藏的
+            levelSelectModal.classList.add('hidden');
+            
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的所有陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            setupLevel();
+            updateProgressDisplay();
+        }
+
+        // 设置当前关卡
+        function setupLevel() {
+            levelDisplay.textContent = gameState.currentLevel;
+            
+            // 更新位置显示
+            locationDisplay.textContent = levelLocations[gameState.currentLevel] || "未知区域";
+            
+            // 根据关卡调整玩家移动速度（高关卡稍微快一点以应对更多陷阱）
+            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
+            
+            // 第10关激活地狱模式
+            if (gameState.currentLevel === 10) {
+                gameContainer.classList.add('hell-mode');
+                // 第10关玩家速度稍微提升以应对超高难度
+                playerSpeed = basePlayerSpeed + 4;
+            } else {
+                gameContainer.classList.remove('hell-mode');
+            }
+            
+            // 根据关卡设置陷阱（生成新布局）
+            createTraps(false);
+            
+            // 设置移动陷阱（生成新布局）
+            setupMovingTraps(false);
+            
+            // 创建钥匙（仅在第3、4、5关）
+            createKeys();
+            
+            // 追踪关卡开始统计（完全静默，不影响游戏）
+            gameStats.trackLevelAttempt(gameState.currentLevel, loopCount);
+            
+            // 显示当前关卡的对话框
+            const currentDialog = levelDialogs[gameState.currentLevel];
+            if (currentDialog) {
+                const content = typeof currentDialog.content === 'function' 
+                    ? currentDialog.content() 
+                    : currentDialog.content;
+                showDialog(currentDialog.title, content);
+            }
+        }
+
+        // 生成关卡布局种子
+        function generateLevelSeed(level) {
+            return level * 12345; // 使用关卡数生成固定种子
+        }
+        
+        // 基于种子的随机数生成器
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        // 创建特殊陷阱
+        function createSpecialTrap(trap, seed, seedCounter, sizeMultiplier) {
+            const specialTypes = ['invisible', 'teleport', 'hunter', 'blink', 'gravity', 'split', 'mirror', 'freeze', 'bounce', 'shrink', 'speed', 'clone'];
+            const typeIndex = Math.floor(seededRandom(seed + seedCounter++) * specialTypes.length);
+            const trapType = specialTypes[typeIndex];
+            
+            const result = createSpecificTrap(trap, trapType, seed, seedCounter, sizeMultiplier);
+            return {
+                seedCounter: result,
+                trapType: trapType
+            };
+        }
+        
+        // 创建指定类型的特殊陷阱
+        function createSpecificTrap(trap, trapType, seed, seedCounter, sizeMultiplier) {
+            const baseSize = 40;
+            const width = baseSize * sizeMultiplier;
+            const height = baseSize * sizeMultiplier;
+            
+            // 生成安全位置，避免与其他元素冲突
+            const position = generateSafePosition(width, height, seed, seedCounter);
+            seedCounter = position.seedCounter;
+            
+            switch(trapType) {
+                case 'invisible':
+                    trap.className = 'invisible-trap';
+                    trap.dataset.trapType = 'invisible';
+                    trap.dataset.revealed = 'false';
+                    break;
+                case 'teleport':
+                    trap.className = 'teleport-trap';
+                    trap.dataset.trapType = 'teleport';
+                    break;
+                case 'hunter':
+                    trap.className = 'hunter-trap';
+                    trap.dataset.trapType = 'hunter';
+                    trap.dataset.huntSpeed = '2';
+                    break;
+                case 'blink':
+                    trap.className = 'blink-trap';
+                    trap.dataset.trapType = 'blink';
+                    trap.dataset.visible = 'true';
+                    break;
+                case 'gravity':
+                    trap.className = 'gravity-trap';
+                    trap.dataset.trapType = 'gravity';
+                    trap.dataset.pullForce = '3';
+                    break;
+                case 'split':
+                    trap.className = 'split-trap';
+                    trap.dataset.trapType = 'split';
+                    trap.dataset.hasTriggered = 'false';
+                    break;
+                case 'mirror':
+                    trap.className = 'mirror-trap';
+                    trap.dataset.trapType = 'mirror';
+                    break;
+                case 'freeze':
+                    trap.className = 'freeze-trap';
+                    trap.dataset.trapType = 'freeze';
+                    break;
+                case 'bounce':
+                    trap.className = 'bounce-trap';
+                    trap.dataset.trapType = 'bounce';
+                    break;
+                case 'shrink':
+                    trap.className = 'shrink-trap';
+                    trap.dataset.trapType = 'shrink';
+                    break;
+                case 'speed':
+                    trap.className = 'speed-trap';
+                    trap.dataset.trapType = 'speed';
+                    break;
+                case 'clone':
+                    trap.className = 'clone-trap';
+                    trap.dataset.trapType = 'clone';
+                    trap.dataset.hasTriggered = 'false';
+                    break;
+            }
+            
+            trap.style.width = width + 'px';
+            trap.style.height = height + 'px';
+            trap.style.left = position.x + 'px';
+            trap.style.bottom = (gameHeight - position.y - height) + 'px';
+            
+            // 保存特殊陷阱信息
+            gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                className: trap.className,
+                trapType: trapType,
+                width: width,
+                height: height,
+                left: position.x,
+                bottom: (gameHeight - position.y - height),
+                data: {...trap.dataset}
+            });
+            
+            return seedCounter;
+        }
+        
+        // 创建静态陷阱
+        function createTraps(useExistingLayout = false) {
+            // 第一关没有任何陷阱
+            if (gameState.currentLevel === 1) {
+                return;
+            }
+            
+            // 如果要重用现有布局
+            if (useExistingLayout && gameState.levelLayouts[gameState.currentLevel]) {
+                const layout = gameState.levelLayouts[gameState.currentLevel];
+                
+                // 重建静态陷阱
+                for (const trapData of layout.staticTraps) {
+                    const trap = document.createElement('div');
+                    trap.className = trapData.className;
+                    
+                    if (trapData.trapType) {
+                        // 重建特殊陷阱
+                        trap.dataset.trapType = trapData.trapType;
+                        if (trapData.data) {
+                            Object.assign(trap.dataset, trapData.data);
+                        }
+                        trap.style.width = trapData.width + 'px';
+                        trap.style.height = trapData.height + 'px';
+                        trap.style.left = trapData.left + 'px';
+                        trap.style.bottom = trapData.bottom + 'px';
+                    } else if (trapData.className === 'trap') {
+                        trap.style.width = trapData.width + 'px';
+                        trap.style.height = trapData.height + 'px';
+                        trap.style.left = trapData.left + 'px';
+                        trap.style.bottom = trapData.bottom + 'px';
+                    } else {
+                        trap.style.left = trapData.left + 'px';
+                    }
+                    
+                    gameContainer.appendChild(trap);
+                    gameState.traps.push(trap);
+                }
+                return;
+            }
+            
+            // 生成新的布局
+            const seed = generateLevelSeed(gameState.currentLevel);
+            let seedCounter = 0;
+            
+            // 优化的关卡难度曲线 - 渐进式挑战
+            let trapCount;
+            if (gameState.currentLevel === 1) {
+                trapCount = 0; // 第1关：新手友好，无陷阱
+            } else if (gameState.currentLevel <= 3) {
+                trapCount = (gameState.currentLevel - 1) * 3; // 第2-3关：3,6个陷阱
+            } else if (gameState.currentLevel <= 6) {
+                trapCount = 6 + (gameState.currentLevel - 3) * 4; // 第4-6关：10,14,18个陷阱
+            } else if (gameState.currentLevel <= 8) {
+                trapCount = 18 + (gameState.currentLevel - 6) * 5; // 第7-8关：23,28个陷阱
+            } else if (gameState.currentLevel === 9) {
+                trapCount = 34; // 第9关：34个陷阱
+            } else {
+                trapCount = 40; // 第10关：40个陷阱 (适度挑战)
+            }
+            
+            // 初始化关卡布局存储
+            if (!gameState.levelLayouts[gameState.currentLevel]) {
+                gameState.levelLayouts[gameState.currentLevel] = {
+                    staticTraps: [],
+                    movingTraps: []
+                };
+            }
+            
+            // 先确保每关至少有足够的隐形陷阱（从第2关开始）
+            let invisibleTrapCount = 0;
+            const minInvisibleTraps = gameState.currentLevel >= 2 ? (gameState.currentLevel === 10 ? 6 : 3) : 0;
+            
+            for (let i = 0; i < trapCount; i++) {
+                const trap = document.createElement('div');
+                
+                // 重新调整陷阱类型比例，让游戏更有趣 (适配10关)
+                const specialChance = gameState.currentLevel === 10 ? 0.55 : Math.min(0.1 + gameState.currentLevel * 0.05, 0.6); // 第10关特殊陷阱比例55%
+                const spikeChance = gameState.currentLevel === 10 ? 0.25 : Math.min(0.2 + gameState.currentLevel * 0.05, 0.6); // 第10关尖刺比例25%
+                const trapChance = gameState.currentLevel === 10 ? 0.15 : 0.3; // 第10关方块陷阱比例15%
+                const randomValue = seededRandom(seed + seedCounter++);
+                
+                // 高关卡的陷阱更大
+                const sizeMultiplier = gameState.currentLevel === 10 ? 1.2 : (1 + gameState.currentLevel * 0.02); // 第10关陷阱尺寸1.2倍
+                
+                // 如果还没有足够的隐形陷阱，强制创建隐形陷阱
+                if (invisibleTrapCount < minInvisibleTraps && (i >= trapCount - (minInvisibleTraps - invisibleTrapCount) || randomValue < 0.3)) {
+                    seedCounter = createSpecificTrap(trap, 'invisible', seed, seedCounter, sizeMultiplier);
+                    invisibleTrapCount++;
+                } else if (randomValue < specialChance && gameState.currentLevel >= 2) {
+                    // 创建特殊陷阱（从第2关开始，更早出现）
+                    const createdType = createSpecialTrap(trap, seed, seedCounter, sizeMultiplier);
+                    seedCounter = createdType.seedCounter;
+                    if (createdType.trapType === 'invisible') {
+                        invisibleTrapCount++;
+                    }
+                } else if (randomValue < specialChance + spikeChance) {
+                    // 尖刺陷阱（优先级提高）
+                    trap.className = 'spike';
+                    
+                    // 生成安全位置，避免与其他元素冲突
+                    const position = generateSafePosition(30, 40, seed, seedCounter);
+                    seedCounter = position.seedCounter;
+                    
+                    trap.style.left = position.x + 'px';
+                    
+                    // 保存布局信息
+                    gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                        className: 'spike',
+                        left: position.x
+                    });
+                } else if (randomValue < specialChance + spikeChance + trapChance) {
+                    // 矩形陷阱
+                    trap.className = 'trap';
+                    const width = (30 + seededRandom(seed + seedCounter++) * 70) * sizeMultiplier;
+                    const height = (20 + seededRandom(seed + seedCounter++) * 50) * sizeMultiplier;
+                    const finalWidth = Math.min(width, 120);
+                    const finalHeight = Math.min(height, 80);
+                    
+                    // 生成安全位置，避免与其他元素冲突
+                    const position = generateSafePosition(finalWidth, finalHeight, seed, seedCounter);
+                    seedCounter = position.seedCounter;
+                    
+                    trap.style.width = finalWidth + 'px';
+                    trap.style.height = finalHeight + 'px';
+                    trap.style.left = position.x + 'px';
+                    trap.style.bottom = (gameHeight - position.y - finalHeight) + 'px';
+                    
+                    // 保存布局信息
+                    gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                        className: 'trap',
+                        width: finalWidth,
+                        height: finalHeight,
+                        left: position.x,
+                        bottom: (gameHeight - position.y - finalHeight)
+                    });
+                } else {
+                    // 如果都不满足，创建一个尖刺陷阱作为默认
+                    trap.className = 'spike';
+                    
+                    // 生成安全位置，避免与其他元素冲突
+                    const position = generateSafePosition(30, 40, seed, seedCounter);
+                    seedCounter = position.seedCounter;
+                    
+                    trap.style.left = position.x + 'px';
+                    
+                    // 保存布局信息
+                    gameState.levelLayouts[gameState.currentLevel].staticTraps.push({
+                        className: 'spike',
+                        left: position.x
+                    });
+                }
+                
+                gameContainer.appendChild(trap);
+                gameState.traps.push(trap);
+            }
+        }
+
+        // 设置移动陷阱
+        function setupMovingTraps(useExistingLayout = false) {
+            // 第1-3关没有移动陷阱
+            if (gameState.currentLevel <= 3) {
+                return;
+            }
+            
+            // 如果要重用现有布局
+            if (useExistingLayout && gameState.levelLayouts[gameState.currentLevel]) {
+                const layout = gameState.levelLayouts[gameState.currentLevel];
+                
+                // 重建移动陷阱
+                for (const trapData of layout.movingTraps) {
+                    const movingTrap = document.createElement('div');
+                    movingTrap.className = 'moving-trap';
+                    
+                    movingTrap.style.left = trapData.startX + 'px';
+                    movingTrap.style.top = trapData.startY + 'px';
+                    
+                    gameContainer.appendChild(movingTrap);
+                    gameState.movingTraps.push({
+                        element: movingTrap,
+                        x: trapData.startX,
+                        y: trapData.startY,
+                        speedX: trapData.speedX,
+                        speedY: trapData.speedY
+                    });
+                }
+                
+                // 开始移动陷阱
+                if (trapInterval) clearInterval(trapInterval);
+                const updateInterval = Math.max(15, 35 - gameState.currentLevel * 0.2);
+                trapInterval = setInterval(moveTraps, updateInterval);
+                return;
+            }
+            
+            // 生成新的移动陷阱布局
+            const seed = generateLevelSeed(gameState.currentLevel);
+            let seedCounter = 1000; // 使用不同的起始值避免与静态陷阱冲突
+            
+            // 优化的移动陷阱难度曲线
+            let movingTrapCount;
+            if (gameState.currentLevel <= 3) {
+                movingTrapCount = 0; // 第1-3关：无移动陷阱，专注学习基础
+            } else if (gameState.currentLevel <= 5) {
+                movingTrapCount = gameState.currentLevel - 3; // 第4-5关：1,2个移动陷阱
+            } else if (gameState.currentLevel <= 7) {
+                movingTrapCount = 2 + (gameState.currentLevel - 5); // 第6-7关：3,4个移动陷阱
+            } else if (gameState.currentLevel <= 9) {
+                movingTrapCount = 4 + (gameState.currentLevel - 7) * 2; // 第8-9关：6,8个移动陷阱
+            } else {
+                movingTrapCount = 12; // 第10关：12个移动陷阱 (适度动态挑战)
+            }
+            
+            for (let i = 0; i < movingTrapCount; i++) {
+                const movingTrap = document.createElement('div');
+                movingTrap.className = 'moving-trap';
+                
+                // 生成安全的初始位置，避免与其他元素冲突
+                const position = generateSafePosition(40, 40, seed, seedCounter);
+                seedCounter = position.seedCounter;
+                const startX = position.x;
+                const startY = position.y;
+                
+                // 根据关卡调整移动速度
+                const baseSpeed = gameState.currentLevel === 10 ? 3 : (2 + gameState.currentLevel * 0.05); // 第10关基础速度3
+                const maxSpeed = gameState.currentLevel === 10 ? 6 : Math.min(baseSpeed, 8); // 第10关最大速度6
+                const speedX = (seededRandom(seed + seedCounter++) - 0.5) * maxSpeed;
+                const speedY = (seededRandom(seed + seedCounter++) - 0.5) * maxSpeed;
+                
+                movingTrap.style.left = startX + 'px';
+                movingTrap.style.top = startY + 'px';
+                
+                gameContainer.appendChild(movingTrap);
+                gameState.movingTraps.push({
+                    element: movingTrap,
+                    x: startX,
+                    y: startY,
+                    speedX: speedX,
+                    speedY: speedY
+                });
+                
+                // 保存移动陷阱布局信息
+                gameState.levelLayouts[gameState.currentLevel].movingTraps.push({
+                    startX: startX,
+                    startY: startY,
+                    speedX: speedX,
+                    speedY: speedY
+                });
+            }
+            
+            // 开始移动陷阱，高关卡更新频率更高
+            if (trapInterval) clearInterval(trapInterval);
+            const updateInterval = gameState.currentLevel === 10 ? 18 : Math.max(15, 35 - gameState.currentLevel * 0.2); // 第10关18ms更新间隔
+            trapInterval = setInterval(moveTraps, updateInterval);
+        }
+
+        // 移动陷阱
+        function moveTraps() {
+            gameState.movingTraps.forEach(trap => {
+                trap.x += trap.speedX;
+                trap.y += trap.speedY;
+                
+                // 边界检测
+                if (trap.x <= 0 || trap.x >= gameWidth - 40) {
+                    trap.speedX *= -1;
+                }
+                if (trap.y <= 0 || trap.y >= gameHeight - 40) {
+                    trap.speedY *= -1;
+                }
+                
+                trap.element.style.left = trap.x + 'px';
+                trap.element.style.top = trap.y + 'px';
+            });
+        }
+
+        // 更新玩家位置
+        function updatePlayerPosition() {
+            player.style.left = gameState.player.x + 'px';
+            player.style.top = gameState.player.y + 'px';
+        }
+        
+        // 检查位置是否与现有元素冲突
+        function isPositionOccupied(x, y, width, height, buffer = 20) {
+            const newRect = {
+                left: x - buffer,
+                right: x + width + buffer,
+                top: y - buffer,
+                bottom: y + height + buffer
+            };
+            
+            // 检查与出口的距离（确保出口周围有足够空间）
+            const doorRect = {
+                left: gameWidth - 80 - 40, // 出口左边界 - 额外缓冲
+                right: gameWidth - 20 + 40, // 出口右边界 + 额外缓冲
+                top: gameHeight - 100 - 40, // 出口顶部 - 额外缓冲
+                bottom: gameHeight + 40 // 出口底部 + 额外缓冲
+            };
+            
+            if (newRect.right > doorRect.left && newRect.left < doorRect.right &&
+                newRect.bottom > doorRect.top && newRect.top < doorRect.bottom) {
+                return true; // 与出口区域冲突
+            }
+            
+            // 检查与起始位置的距离（确保玩家起始位置安全）
+            const startRect = {
+                left: 50 - 60,
+                right: 50 + 40 + 60,
+                top: 250 - 60,
+                bottom: 250 + 50 + 60
+            };
+            
+            if (newRect.right > startRect.left && newRect.left < startRect.right &&
+                newRect.bottom > startRect.top && newRect.top < startRect.bottom) {
+                return true; // 与起始位置冲突
+            }
+            
+            // 检查与现有陷阱的冲突（包括DOM中的和布局数据中的）
+            for (const trap of gameState.traps) {
+                if (trap.parentNode) { // 只检查已添加到DOM的陷阱
+                    const trapRect = trap.getBoundingClientRect();
+                    const containerRect = gameContainer.getBoundingClientRect();
+                    const trapX = trapRect.left - containerRect.left;
+                    const trapY = trapRect.top - containerRect.top;
+                    const trapWidth = trapRect.width || 40;
+                    const trapHeight = trapRect.height || 40;
+                    
+                    const existingRect = {
+                        left: trapX - buffer,
+                        right: trapX + trapWidth + buffer,
+                        top: trapY - buffer,
+                        bottom: trapY + trapHeight + buffer
+                    };
+                    
+                    if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                        newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                        return true; // 与现有陷阱冲突
+                    }
+                }
+            }
+            
+            // 检查与布局数据中已规划的陷阱位置冲突
+            if (gameState.levelLayouts[gameState.currentLevel]) {
+                for (const trapData of gameState.levelLayouts[gameState.currentLevel].staticTraps) {
+                    const trapX = trapData.left;
+                    const trapY = trapData.bottom ? gameHeight - trapData.bottom - (trapData.height || 40) : 0;
+                    const trapWidth = trapData.width || 40;
+                    const trapHeight = trapData.height || 40;
+                    
+                    const existingRect = {
+                        left: trapX - buffer,
+                        right: trapX + trapWidth + buffer,
+                        top: trapY - buffer,
+                        bottom: trapY + trapHeight + buffer
+                    };
+                    
+                    if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                        newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                        return true; // 与规划的陷阱位置冲突
+                    }
+                }
+            }
+            
+            // 检查与现有钥匙的冲突
+            for (const key of gameState.keys) {
+                if (key.parentNode) { // 只检查已添加到DOM的钥匙
+                    const keyRect = key.getBoundingClientRect();
+                    const containerRect = gameContainer.getBoundingClientRect();
+                    const keyX = keyRect.left - containerRect.left;
+                    const keyY = keyRect.top - containerRect.top;
+                    const keyWidth = keyRect.width || 30;
+                    const keyHeight = keyRect.height || 30;
+                    
+                    const existingRect = {
+                        left: keyX - buffer,
+                        right: keyX + keyWidth + buffer,
+                        top: keyY - buffer,
+                        bottom: keyY + keyHeight + buffer
+                    };
+                    
+                    if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                        newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                        return true; // 与现有钥匙冲突
+                    }
+                }
+            }
+            
+            return false; // 位置可用
+        }
+        
+        // 生成安全位置
+        function generateSafePosition(width, height, seed, seedCounter, maxAttempts = 50) {
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const x = 100 + seededRandom(seed + seedCounter + attempt * 2) * (gameWidth - 200 - width);
+                const y = 50 + seededRandom(seed + seedCounter + attempt * 2 + 1) * (gameHeight - 100 - height);
+                
+                if (!isPositionOccupied(x, y, width, height)) {
+                    return { x, y, seedCounter: seedCounter + attempt * 2 + 2 };
+                }
+            }
+            
+            // 如果找不到安全位置，返回一个相对安全的默认位置
+            const fallbackX = 150 + (seedCounter % 3) * 200;
+            const fallbackY = 100 + (seedCounter % 2) * 200;
+            return { x: fallbackX, y: fallbackY, seedCounter: seedCounter + maxAttempts * 2 };
+        }
+
+        // 创建钥匙
+        function createKeys() {
+            // 只在第3、4、5关生成钥匙
+            if (gameState.currentLevel < 3 || gameState.currentLevel > 5) {
+                gameState.requiredKeys = 0;
+                keyInfoDisplay.style.display = 'none';
+                return;
+            }
+            
+            // 确保游戏尺寸是最新的
+            updateGameDimensions();
+            
+            gameState.requiredKeys = 3;
+            gameState.collectedKeys = 0;
+            gameState.keys = [];
+            keyInfoDisplay.style.display = 'inline';
+            updateKeyDisplay();
+            
+            const seed = generateLevelSeed(gameState.currentLevel);
+            let seedCounter = 5000; // 使用不同的起始值避免与陷阱冲突
+            
+            // 等待一小段时间确保所有陷阱都已经添加到DOM
+            setTimeout(() => {
+                console.log('开始生成钥匙，需要生成3把');
+                
+                // 根据当前游戏区域大小动态计算钥匙位置
+                const keyPositions = [
+                    { x: Math.min(150, gameWidth * 0.2), y: Math.min(100, gameHeight * 0.3) },
+                    { x: Math.min(300, gameWidth * 0.4), y: Math.min(150, gameHeight * 0.4) },
+                    { x: Math.min(450, gameWidth * 0.6), y: Math.min(200, gameHeight * 0.5) }
+                ];
+                
+                for (let i = 0; i < 3; i++) {
+                    const key = document.createElement('div');
+                    key.className = 'key';
+                    key.innerHTML = '🗝️';
+                    
+                    // 首先尝试生成安全位置
+                    let position = generateSafePositionForKey(30, 30, seed, seedCounter + i * 1000, i);
+                    
+                    // 如果生成的位置与已有钥匙重叠，使用预定义位置
+                    const existingKeys = gameState.keys;
+                    let positionConflict = false;
+                    for (const existingKey of existingKeys) {
+                        const existingX = parseInt(existingKey.style.left);
+                        const existingY = parseInt(existingKey.style.top);
+                        if (Math.abs(position.x - existingX) < 60 && Math.abs(position.y - existingY) < 60) {
+                            positionConflict = true;
+                            break;
+                        }
+                    }
+                    
+                    if (positionConflict) {
+                        position = keyPositions[i];
+                        console.log(`钥匙${i + 1}位置冲突，使用预定义位置: (${position.x}, ${position.y})`);
+                    }
+                    
+                    seedCounter = position.seedCounter || seedCounter + 100;
+                    
+                    key.style.left = position.x + 'px';
+                    key.style.top = position.y + 'px';
+                    
+                    console.log(`生成第${i + 1}把钥匙，位置: (${position.x}, ${position.y})`);
+                    
+                    // 不需要点击事件，通过碰撞检测收集
+                    
+                    gameContainer.appendChild(key);
+                    gameState.keys.push(key);
+                }
+                console.log(`钥匙生成完成，总共生成了${gameState.keys.length}把钥匙`);
+            }, 100); // 延迟100ms确保陷阱都已创建完成
+        }
+        
+        // 专门为钥匙生成安全位置的函数，使用更严格的检查
+        function generateSafePositionForKey(width, height, seed, seedCounter, keyIndex = 0, maxAttempts = 100) {
+            // 确保钥匙生成在可视区域内，根据屏幕大小动态调整边界
+            const minX = Math.max(50, gameWidth * 0.1);
+            const maxX = Math.min(gameWidth - 100, gameWidth * 0.85) - width;
+            const minY = Math.max(30, gameHeight * 0.15);
+            const maxY = Math.min(gameHeight - 80, gameHeight * 0.8) - height;
+            
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const x = minX + seededRandom(seed + seedCounter + attempt * 2) * (maxX - minX);
+                const y = minY + seededRandom(seed + seedCounter + attempt * 2 + 1) * (maxY - minY);
+                
+                if (isPositionSafeForKey(x, y, width, height)) {
+                    return { x, y, seedCounter: seedCounter + attempt * 2 + 2 };
+                }
+            }
+            
+            // 如果找不到安全位置，使用预定义的安全区域（根据屏幕大小动态调整）
+            const safeZones = [
+                { x: Math.max(120, gameWidth * 0.15), y: Math.max(80, gameHeight * 0.25) },
+                { x: Math.min(gameWidth - 200, gameWidth * 0.7), y: Math.max(80, gameHeight * 0.25) },
+                { x: Math.max(120, gameWidth * 0.15), y: Math.min(gameHeight - 150, gameHeight * 0.6) },
+                { x: gameWidth / 2 - 15, y: Math.max(80, gameHeight * 0.25) },
+                { x: gameWidth / 2 - 15, y: Math.min(gameHeight - 150, gameHeight * 0.6) },
+                { x: Math.min(200, gameWidth * 0.25), y: Math.max(120, gameHeight * 0.35) },
+                { x: Math.min(300, gameWidth * 0.4), y: Math.max(120, gameHeight * 0.35) },
+                { x: Math.min(400, gameWidth * 0.55), y: Math.max(120, gameHeight * 0.35) }
+            ];
+            
+            for (const zone of safeZones) {
+                if (isPositionSafeForKey(zone.x, zone.y, width, height)) {
+                    console.log(`使用预定义安全区域: (${zone.x}, ${zone.y})`);
+                    return { x: zone.x, y: zone.y, seedCounter: seedCounter + maxAttempts * 2 };
+                }
+            }
+            
+            // 最后的备选位置 - 强制生成，不再检查冲突
+            // 使用钥匙索引确保每把钥匙有不同位置（根据屏幕大小动态调整）
+            const fallbackPositions = [
+                { x: Math.min(150, gameWidth * 0.2), y: Math.min(100, gameHeight * 0.3) },
+                { x: Math.min(300, gameWidth * 0.4), y: Math.min(150, gameHeight * 0.4) },
+                { x: Math.min(450, gameWidth * 0.6), y: Math.min(200, gameHeight * 0.5) },
+                { x: Math.min(200, gameWidth * 0.3), y: Math.min(300, gameHeight * 0.7) },
+                { x: Math.min(350, gameWidth * 0.5), y: Math.min(320, gameHeight * 0.75) }
+            ];
+            
+            const selectedPosition = fallbackPositions[keyIndex % fallbackPositions.length];
+            console.log(`使用强制备选位置 ${keyIndex}: (${selectedPosition.x}, ${selectedPosition.y})`);
+            return { x: selectedPosition.x, y: selectedPosition.y, seedCounter: seedCounter + maxAttempts * 2 };
+        }
+        
+        // 检查位置对钥匙是否安全（更严格的检查）
+        function isPositionSafeForKey(x, y, width, height, buffer = 35) {
+            const newRect = {
+                left: x - buffer,
+                right: x + width + buffer,
+                top: y - buffer,
+                bottom: y + height + buffer
+            };
+            
+            // 检查与出口的距离（确保出口周围有足够空间）
+            const doorRect = {
+                left: gameWidth - 80 - 60, // 出口左边界 - 更大缓冲
+                right: gameWidth - 20 + 60, // 出口右边界 + 更大缓冲
+                top: gameHeight - 100 - 60, // 出口顶部 - 更大缓冲
+                bottom: gameHeight + 60 // 出口底部 + 更大缓冲
+            };
+            
+            if (newRect.right > doorRect.left && newRect.left < doorRect.right &&
+                newRect.bottom > doorRect.top && newRect.top < doorRect.bottom) {
+                return false; // 与出口区域冲突
+            }
+            
+            // 检查与起始位置的距离（确保玩家起始位置安全）
+            const startRect = {
+                left: 50 - 80,
+                right: 50 + 40 + 80,
+                top: 250 - 80,
+                bottom: 250 + 50 + 80
+            };
+            
+            if (newRect.right > startRect.left && newRect.left < startRect.right &&
+                newRect.bottom > startRect.top && newRect.top < startRect.bottom) {
+                return false; // 与起始位置冲突
+            }
+            
+            // 检查与所有DOM中的陷阱的冲突
+            const allTraps = gameContainer.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap');
+            
+            for (const trap of allTraps) {
+                const trapRect = trap.getBoundingClientRect();
+                const containerRect = gameContainer.getBoundingClientRect();
+                const trapX = trapRect.left - containerRect.left;
+                const trapY = trapRect.top - containerRect.top;
+                const trapWidth = trapRect.width || 40;
+                const trapHeight = trapRect.height || 40;
+                
+                const existingRect = {
+                    left: trapX - buffer,
+                    right: trapX + trapWidth + buffer,
+                    top: trapY - buffer,
+                    bottom: trapY + trapHeight + buffer
+                };
+                
+                if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                    newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                    return false; // 与现有陷阱冲突
+                }
+            }
+            
+            // 检查与移动陷阱的冲突
+            for (const movingTrap of gameState.movingTraps) {
+                const trapX = movingTrap.x;
+                const trapY = movingTrap.y;
+                const trapWidth = 40;
+                const trapHeight = 40;
+                
+                const existingRect = {
+                    left: trapX - buffer,
+                    right: trapX + trapWidth + buffer,
+                    top: trapY - buffer,
+                    bottom: trapY + trapHeight + buffer
+                };
+                
+                if (newRect.right > existingRect.left && newRect.left < existingRect.right &&
+                    newRect.bottom > existingRect.top && newRect.top < existingRect.bottom) {
+                    return false; // 与移动陷阱冲突
+                }
+            }
+            
+            return true; // 位置安全
+        }
+        
+        // 收集钥匙
+        function collectKey(keyElement) {
+            if (gameState.gameOver) return;
+            
+            // 播放收集音效
+            playClickSound();
+            
+            // 追踪钥匙收集统计（完全静默，不影响游戏）
+            gameStats.trackKeyCollected();
+            
+            // 移除钥匙
+            keyElement.remove();
+            gameState.keys = gameState.keys.filter(k => k !== keyElement);
+            gameState.collectedKeys++;
+            
+            // 更新显示
+            updateKeyDisplay();
+            
+            // 显示收集提示
+            messageDisplay.textContent = `🗝️ 收集到钥匙！(${gameState.collectedKeys}/${gameState.requiredKeys})`;
+            setTimeout(() => {
+                if (messageDisplay.textContent.includes('收集到钥匙')) {
+                    messageDisplay.textContent = '';
+                }
+            }, 1500);
+            
+            // 检查是否收集完毕
+            if (gameState.collectedKeys >= gameState.requiredKeys) {
+                messageDisplay.textContent = '✨ 所有钥匙收集完毕！现在可以进入下一关了！';
+                setTimeout(() => {
+                    if (messageDisplay.textContent.includes('所有钥匙收集完毕')) {
+                        messageDisplay.textContent = '';
+                    }
+                }, 3000);
+            }
+        }
+        
+        // 更新钥匙显示
+        function updateKeyDisplay() {
+            if (gameState.requiredKeys > 0) {
+                keyCountDisplay.textContent = `${gameState.collectedKeys}/${gameState.requiredKeys}`;
+            }
+        }
+        
+        // 检查钥匙收集条件
+        function checkKeyRequirement() {
+            // 只在第3、4、5关检查钥匙
+            if (gameState.currentLevel >= 3 && gameState.currentLevel <= 5) {
+                return gameState.collectedKeys >= gameState.requiredKeys;
+            }
+            return true; // 其他关卡不需要钥匙
+        }
+
+        // 处理特殊陷阱
+        function handleSpecialTrap(trap) {
+            const trapType = trap.dataset.trapType;
+            
+            switch(trapType) {
+                case 'teleport':
+                    // 传送陷阱：随机传送玩家
+                    playClickSound(); // 传送音效
+                    gameState.player.x = 50 + Math.random() * (gameWidth - 150);
+                    gameState.player.y = 50 + Math.random() * (gameHeight - 100);
+                    updatePlayerPosition();
+                    messageDisplay.textContent = '💫 传送了！';
+                    setTimeout(() => {
+                        if (messageDisplay.textContent.includes('传送了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 1500);
+                    break;
+                    
+                case 'freeze':
+                    // 冰冻陷阱：冻结玩家3秒
+                    gameState.playerFrozen = true;
+                    gameState.freezeEndTime = Date.now() + 3000;
+                    player.style.filter = 'hue-rotate(240deg) brightness(0.7)';
+                    messageDisplay.textContent = '🧊 被冰冻了！';
+                    setTimeout(() => {
+                        gameState.playerFrozen = false;
+                        player.style.filter = '';
+                        if (messageDisplay.textContent.includes('被冰冻了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 3000);
+                    break;
+                    
+                case 'split':
+                    // 分裂陷阱：分裂成4个小陷阱
+                    if (trap.dataset.hasTriggered === 'false') {
+                        trap.dataset.hasTriggered = 'true';
+                        createSplitTraps(trap);
+                        trap.remove();
+                        gameState.traps = gameState.traps.filter(t => t !== trap);
+                    }
+                    break;
+                    
+                case 'gravity':
+                    // 重力陷阱：把玩家拉向中心然后爆炸
+                    const trapRect = trap.getBoundingClientRect();
+                    const centerX = trapRect.left + trapRect.width / 2 - gameContainer.getBoundingClientRect().left;
+                    const centerY = trapRect.top + trapRect.height / 2 - gameContainer.getBoundingClientRect().top;
+                    gameState.player.x = centerX - 20;
+                    gameState.player.y = centerY - 25;
+                    updatePlayerPosition();
+                    setTimeout(() => gameOver(), 500);
+                    break;
+                    
+                case 'bounce':
+                    // 弹跳陷阱：把玩家弹到随机方向
+                    playClickSound();
+                    const bounceForce = 100;
+                    const angle = Math.random() * 2 * Math.PI;
+                    gameState.player.x += Math.cos(angle) * bounceForce;
+                    gameState.player.y += Math.sin(angle) * bounceForce;
+                    
+                    // 确保玩家不会被弹出边界
+                    gameState.player.x = Math.max(0, Math.min(gameWidth - 40, gameState.player.x));
+                    gameState.player.y = Math.max(0, Math.min(gameHeight - 50, gameState.player.y));
+                    updatePlayerPosition();
+                    
+                    messageDisplay.textContent = '🏀 被弹飞了！';
+                    setTimeout(() => {
+                        if (messageDisplay.textContent.includes('被弹飞了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 1500);
+                    break;
+                    
+                case 'shrink':
+                    // 缩小陷阱：让玩家变小5秒
+                    player.style.transform = 'scale(0.5)';
+                    messageDisplay.textContent = '🔍 变小了！';
+                    setTimeout(() => {
+                        player.style.transform = '';
+                        if (messageDisplay.textContent.includes('变小了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 5000);
+                    break;
+                    
+                case 'speed':
+                    // 加速陷阱：让玩家移动速度翻倍5秒
+                    const originalSpeed = playerSpeed;
+                    playerSpeed *= 2;
+                    player.style.filter = 'hue-rotate(120deg) brightness(1.2)';
+                    messageDisplay.textContent = '⚡ 加速了！';
+                    setTimeout(() => {
+                        playerSpeed = originalSpeed;
+                        player.style.filter = '';
+                        if (messageDisplay.textContent.includes('加速了')) {
+                            messageDisplay.textContent = '';
+                        }
+                    }, 5000);
+                    break;
+                    
+                case 'clone':
+                    // 克隆陷阱：创建玩家的镜像
+                    if (trap.dataset.hasTriggered === 'false') {
+                        trap.dataset.hasTriggered = 'true';
+                        createPlayerClone();
+                        messageDisplay.textContent = '👥 出现了分身！';
+                        setTimeout(() => {
+                            if (messageDisplay.textContent.includes('出现了分身')) {
+                                messageDisplay.textContent = '';
+                            }
+                        }, 2000);
+                    }
+                    break;
+                    
+                default:
+                    // 其他特殊陷阱也会导致游戏结束
+                    gameOver();
+                    break;
+            }
+        }
+
+        // 创建分裂的小陷阱
+        function createSplitTraps(originalTrap) {
+            const rect = originalTrap.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2 - gameContainer.getBoundingClientRect().left;
+            const centerY = rect.top + rect.height / 2 - gameContainer.getBoundingClientRect().top;
+            
+            const directions = [
+                {x: -1, y: -1}, {x: 1, y: -1}, 
+                {x: -1, y: 1}, {x: 1, y: 1}
+            ];
+            
+            directions.forEach((dir, index) => {
+                setTimeout(() => {
+                    const smallTrap = document.createElement('div');
+                    smallTrap.className = 'trap';
+                    smallTrap.style.width = '20px';
+                    smallTrap.style.height = '20px';
+                    smallTrap.style.left = (centerX + dir.x * 30) + 'px';
+                    smallTrap.style.top = (centerY + dir.y * 30) + 'px';
+                    smallTrap.style.position = 'absolute';
+                    
+                    gameContainer.appendChild(smallTrap);
+                    gameState.traps.push(smallTrap);
+                }, index * 100);
+            });
+        }
+
+        // 创建玩家克隆
+        function createPlayerClone() {
+            const clone = document.createElement('div');
+            clone.className = 'player-clone';
+            clone.innerHTML = '🧙‍♂️';
+            clone.style.position = 'absolute';
+            clone.style.width = '40px';
+            clone.style.height = '50px';
+            clone.style.fontSize = '40px';
+            clone.style.display = 'flex';
+            clone.style.alignItems = 'center';
+            clone.style.justifyContent = 'center';
+            clone.style.zIndex = '3';
+            clone.style.opacity = '0.7';
+            clone.style.filter = 'hue-rotate(180deg)';
+            
+            // 克隆出现在玩家附近的随机位置
+            const offsetX = (Math.random() - 0.5) * 200;
+            const offsetY = (Math.random() - 0.5) * 200;
+            clone.style.left = Math.max(0, Math.min(gameWidth - 40, gameState.player.x + offsetX)) + 'px';
+            clone.style.top = Math.max(0, Math.min(gameHeight - 50, gameState.player.y + offsetY)) + 'px';
+            
+            gameContainer.appendChild(clone);
+            
+            // 克隆会跟随玩家移动，但有延迟
+            let cloneX = parseFloat(clone.style.left);
+            let cloneY = parseFloat(clone.style.top);
+            
+            const cloneInterval = setInterval(() => {
+                if (gameState.gameOver) {
+                    clearInterval(cloneInterval);
+                    clone.remove();
+                    return;
+                }
+                
+                // 克隆缓慢跟随玩家
+                const dx = gameState.player.x - cloneX;
+                const dy = gameState.player.y - cloneY;
+                cloneX += dx * 0.1;
+                cloneY += dy * 0.1;
+                
+                clone.style.left = cloneX + 'px';
+                clone.style.top = cloneY + 'px';
+            }, 50);
+            
+            // 10秒后移除克隆
+            setTimeout(() => {
+                clearInterval(cloneInterval);
+                if (clone.parentNode) {
+                    clone.remove();
+                }
+            }, 10000);
+        }
+
+        // 检测碰撞
+        function checkCollisions() {
+            const playerRect = player.getBoundingClientRect();
+            const doorRect = door.getBoundingClientRect();
+            
+            // 检查是否完全进入门内（玩家需要完全在门的范围内）
+            if (playerRect.left >= doorRect.left + 5 && 
+                playerRect.right <= doorRect.right - 5 && 
+                playerRect.bottom >= doorRect.top + 5 && 
+                playerRect.top <= doorRect.bottom - 5) {
+                levelComplete();
+                return;
+            }
+            
+            // 检查与静态陷阱的碰撞
+            for (const trap of gameState.traps) {
+                const trapRect = trap.getBoundingClientRect();
+                if (playerRect.right > trapRect.left && 
+                    playerRect.left < trapRect.right && 
+                    playerRect.bottom > trapRect.top && 
+                    playerRect.top < trapRect.bottom) {
+                    
+                    // 处理特殊陷阱
+                    if (trap.dataset.trapType) {
+                        // 闪烁陷阱在不可见时不会造成伤害
+                        if (trap.dataset.trapType === 'blink' && trap.dataset.visible === 'false') {
+                            continue;
+                        }
+                        handleSpecialTrap(trap);
+                    } else {
+                        gameOver();
+                    }
+                    return;
+                }
+            }
+            
+            // 检查与移动陷阱的碰撞
+            for (const trap of gameState.movingTraps) {
+                const trapRect = trap.element.getBoundingClientRect();
+                if (playerRect.right > trapRect.left && 
+                    playerRect.left < trapRect.right && 
+                    playerRect.bottom > trapRect.top && 
+                    playerRect.top < trapRect.bottom) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // 检查与钥匙的碰撞
+            for (let i = gameState.keys.length - 1; i >= 0; i--) {
+                const key = gameState.keys[i];
+                const keyRect = key.getBoundingClientRect();
+                if (playerRect.right > keyRect.left && 
+                    playerRect.left < keyRect.right && 
+                    playerRect.bottom > keyRect.top && 
+                    playerRect.top < keyRect.bottom) {
+                    collectKey(key);
+                    break; // 一次只收集一把钥匙
+                }
+            }
+            
+            // 检查边界
+            if (gameState.player.x < 0 || gameState.player.x > gameWidth - 40 ||
+                gameState.player.y < 0 || gameState.player.y > gameHeight - 50) {
+                gameOver();
+                return;
+            }
+        }
+
+        // 关卡完成
+        function levelComplete() {
+            // 防止重复调用
+            if (gameState.gameOver) return;
+            
+            // 检查钥匙收集条件
+            if (!checkKeyRequirement()) {
+                messageDisplay.textContent = `🗝️ 还需要收集 ${gameState.requiredKeys - gameState.collectedKeys} 把钥匙才能进入下一关！`;
+                setTimeout(() => {
+                    if (messageDisplay.textContent.includes('还需要收集')) {
+                        messageDisplay.textContent = '';
+                    }
+                }, 3000);
+                return;
+            }
+            
+            gameState.gameOver = true;
+            
+            // 播放过关音效
+            playSuccessSound();
+            
+            // 添加过关特效
+            const sparkle = document.createElement('div');
+            sparkle.className = 'level-complete';
+            sparkle.style.left = (gameState.player.x - 30) + 'px';
+            sparkle.style.top = (gameState.player.y - 25) + 'px';
+            gameContainer.appendChild(sparkle);
+            
+            // 移除特效
+            setTimeout(() => {
+                sparkle.remove();
+            }, 1000);
+            
+            // 记录当前关卡的死亡次数
+            levelDeaths[gameState.currentLevel] = currentLevelDeaths;
+            
+            // 追踪关卡完成统计（完全静默，不影响游戏）
+            gameStats.trackLevelComplete(gameState.currentLevel, loopCount);
+            
+            // 解锁下一关
+            if (gameState.currentLevel === gameState.maxUnlockedLevel && gameState.currentLevel < gameState.maxLevel) {
+                gameState.maxUnlockedLevel = gameState.currentLevel + 1;
+                saveProgress();
+            }
+            
+            if (gameState.currentLevel === gameState.maxLevel) {
+                // 第10关通关 - 显示Zack拯救成功对话框
+                setTimeout(() => {
+                    showZackSuccessDialog();
+                }, 1500); // 等待特效完成后显示
+            } else {
+                messageDisplay.textContent = `✨ 恭喜通过第 ${gameState.currentLevel} 关！解锁第 ${gameState.currentLevel + 1} 关！`;
+                // 2秒后自动进入下一关
+                setTimeout(() => {
+                    nextLevel();
+                }, 2000);
+            }
+        }
+
+        // 游戏结束
+        function gameOver() {
+            // 防止重复调用
+            if (gameState.gameOver) return;
+            gameState.gameOver = true;
+            
+            // 增加循环次数
+            loopCount++;
+            
+            // 增加当前关卡死亡次数
+            currentLevelDeaths++;
+            
+            updateProgressDisplay(); // 更新显示
+            
+            // 播放爆炸音效
+            playExplosionSound();
+            
+            // 添加爆炸特效
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = (gameState.player.x - 30) + 'px';
+            explosion.style.top = (gameState.player.y - 25) + 'px';
+            gameContainer.appendChild(explosion);
+            
+            // 隐藏玩家
+            player.style.display = 'none';
+            
+            messageDisplay.textContent = `💥 爆炸了！第${loopCount}次循环开始...`;
+            
+            // 移除爆炸特效并重新开始当前关卡
+            setTimeout(() => {
+                explosion.remove();
+                player.style.display = 'flex';
+                restartCurrentLevel();
+            }, 1500);
+        }
+        
+        // 重新开始当前关卡
+        function restartCurrentLevel() {
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
+            gameState.gameOver = false;
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
+            
+            messageDisplay.textContent = '';
+            
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            
+            // 重用现有的关卡布局
+            levelDisplay.textContent = gameState.currentLevel;
+            playerSpeed = basePlayerSpeed + Math.floor(gameState.currentLevel / 3); // 每3关增加1点速度
+            createTraps(true); // 使用现有布局
+            setupMovingTraps(true); // 使用现有布局
+            createKeys(); // 重新创建钥匙
+            
+            // 追踪关卡重试统计（完全静默，不影响游戏）
+            gameStats.trackLevelAttempt(gameState.currentLevel, loopCount);
+        }
+
+        // 下一关
+        function nextLevel() {
+            gameState.currentLevel++;
+            
+            // 重置当前关卡死亡次数
+            currentLevelDeaths = 0;
+            
+            saveProgress(); // 保存当前关卡进度
+            gameState.player = { x: 50, y: 250 };
+            gameState.traps = [];
+            gameState.movingTraps = [];
+            gameState.specialTraps = [];
+            gameState.keys = [];
+            gameState.collectedKeys = 0;
+            gameState.requiredKeys = 0;
+            gameState.gameOver = false;  // 重置游戏状态
+            gameState.playerFrozen = false;
+            gameState.freezeEndTime = 0;
+            
+            messageDisplay.textContent = '';
+            nextBtn.classList.add('hidden');
+            
+            // 清除玩家的特殊状态
+            player.style.filter = '';
+            player.style.transform = '';
+            
+            // 清除之前的陷阱（包括特殊陷阱）和钥匙
+            document.querySelectorAll('.trap, .spike, .moving-trap, .invisible-trap, .teleport-trap, .hunter-trap, .blink-trap, .gravity-trap, .split-trap, .mirror-trap, .freeze-trap, .bounce-trap, .shrink-trap, .speed-trap, .clone-trap, .player-clone, .key').forEach(el => el.remove());
+            
+            updatePlayerPosition();
+            setupLevel();
+            updateProgressDisplay(); // 更新进度显示
+            
+            // 不需要再次调用gameLoop()，因为它已经在运行
+        }
+
+        // 更新玩家移动
+        function updatePlayerMovement() {
+            if (gameState.gameOver || gameState.playerFrozen) return;
+            
+            // 第7、8、9关方向键反转
+            const isReversedLevel = gameState.currentLevel >= 7 && gameState.currentLevel <= 9;
+            
+            if (keys.ArrowUp) {
+                gameState.player.y += isReversedLevel ? playerSpeed : -playerSpeed;
+            }
+            if (keys.ArrowDown) {
+                gameState.player.y += isReversedLevel ? -playerSpeed : playerSpeed;
+            }
+            if (keys.ArrowLeft) {
+                gameState.player.x += isReversedLevel ? playerSpeed : -playerSpeed;
+            }
+            if (keys.ArrowRight) {
+                gameState.player.x += isReversedLevel ? -playerSpeed : playerSpeed;
+            }
+            
+            updatePlayerPosition();
+        }
+
+        // 游戏主循环
+        function gameLoop() {
+            updatePlayerMovement();
+            updateSpecialTraps();
+            checkCollisions();
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // 更新特殊陷阱的行为
+        function updateSpecialTraps() {
+            if (gameState.gameOver) return;
+            
+            gameState.traps.forEach(trap => {
+                const trapType = trap.dataset.trapType;
+                if (!trapType) return;
+                
+                const playerRect = player.getBoundingClientRect();
+                const trapRect = trap.getBoundingClientRect();
+                
+                switch(trapType) {
+                    case 'invisible':
+                        // 隐形陷阱：玩家非常靠近时才显现，远离时重新隐藏
+                        const distance = Math.sqrt(
+                            Math.pow(playerRect.left - trapRect.left, 2) + 
+                            Math.pow(playerRect.top - trapRect.top, 2)
+                        );
+                        if (distance < 80) {
+                            if (trap.dataset.revealed === 'false') {
+                                trap.dataset.revealed = 'true';
+                                trap.classList.add('revealed');
+                            }
+                        } else if (distance > 100) {
+                            // 玩家远离时重新隐藏
+                            if (trap.dataset.revealed === 'true') {
+                                trap.dataset.revealed = 'false';
+                                trap.classList.remove('revealed');
+                            }
+                        }
+                        break;
+                        
+                    case 'hunter':
+                        // 追踪陷阱：跟着玩家移动
+                        const speed = parseFloat(trap.dataset.huntSpeed) || 2;
+                        const currentLeft = parseFloat(trap.style.left);
+                        const currentTop = parseFloat(trap.style.top);
+                        
+                        const playerX = gameState.player.x + 20; // 玩家中心点
+                        const playerY = gameState.player.y + 25;
+                        const trapX = currentLeft + 20; // 陷阱中心点
+                        const trapY = currentTop + 20;
+                        
+                        const dx = playerX - trapX;
+                        const dy = playerY - trapY;
+                        const magnitude = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (magnitude > 5) { // 避免抖动
+                            const moveX = (dx / magnitude) * speed;
+                            const moveY = (dy / magnitude) * speed;
+                            
+                            trap.style.left = Math.max(0, Math.min(gameWidth - 40, currentLeft + moveX)) + 'px';
+                            trap.style.top = Math.max(0, Math.min(gameHeight - 40, currentTop + moveY)) + 'px';
+                        }
+                        break;
+                        
+                    case 'mirror':
+                        // 镜像陷阱：与玩家做相反移动
+                        const centerX = gameWidth / 2;
+                        const centerY = gameHeight / 2;
+                        const mirrorX = centerX - (gameState.player.x - centerX);
+                        const mirrorY = centerY - (gameState.player.y - centerY);
+                        
+                        trap.style.left = Math.max(0, Math.min(gameWidth - 40, mirrorX - 20)) + 'px';
+                        trap.style.top = Math.max(0, Math.min(gameHeight - 40, mirrorY - 25)) + 'px';
+                        break;
+                        
+                    case 'gravity':
+                        // 重力陷阱：吸引玩家
+                        const gravityDistance = Math.sqrt(
+                            Math.pow(playerRect.left - trapRect.left, 2) + 
+                            Math.pow(playerRect.top - trapRect.top, 2)
+                        );
+                        
+                        if (gravityDistance < 120) { // 重力范围
+                            const pullForce = parseFloat(trap.dataset.pullForce) || 3;
+                            const trapCenterX = trapRect.left + trapRect.width / 2 - gameContainer.getBoundingClientRect().left;
+                            const trapCenterY = trapRect.top + trapRect.height / 2 - gameContainer.getBoundingClientRect().top;
+                            
+                            const pullX = trapCenterX - (gameState.player.x + 20);
+                            const pullY = trapCenterY - (gameState.player.y + 25);
+                            const pullMagnitude = Math.sqrt(pullX * pullX + pullY * pullY);
+                            
+                            if (pullMagnitude > 0) {
+                                gameState.player.x += (pullX / pullMagnitude) * pullForce * 0.3;
+                                gameState.player.y += (pullY / pullMagnitude) * pullForce * 0.3;
+                                updatePlayerPosition();
+                            }
+                        }
+                        break;
+                        
+                    case 'blink':
+                        // 闪烁陷阱逻辑已通过CSS动画处理
+                        const computedStyle = window.getComputedStyle(trap);
+                        trap.dataset.visible = computedStyle.opacity > 0.5 ? 'true' : 'false';
+                        break;
+                }
+            });
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (gameState.gameOver) return;
+            
+            if (e.key in keys) {
+                keys[e.key] = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key in keys) {
+                keys[e.key] = false;
+            }
+        });
+        
+        // 移动端触摸控制
+        function initMobileControls() {
+            let isTouching = false;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let playerStartX = 0;
+            let playerStartY = 0;
+            let continuousMove = false;
+            let lastUpdateTime = 0;
+            const updateInterval = 16; // 约60fps的更新频率
+            
+            // 触摸跟随控制 - 角色跟随手指移动
+            gameContainer.addEventListener('touchstart', (e) => {
+                if (gameState.gameOver) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const rect = gameContainer.getBoundingClientRect();
+                touchStartX = touch.clientX - rect.left;
+                touchStartY = touch.clientY - rect.top;
+                
+                // 记录角色开始位置
+                playerStartX = gameState.player.x;
+                playerStartY = gameState.player.y;
+                
+                isTouching = true;
+                continuousMove = false;
+                
+                // 停止所有键盘移动
+                keys.ArrowUp = false;
+                keys.ArrowDown = false;
+                keys.ArrowLeft = false;
+                keys.ArrowRight = false;
+            }, { passive: false });
+            
+            gameContainer.addEventListener('touchmove', (e) => {
+                if (gameState.gameOver || !isTouching) return;
+                e.preventDefault();
+                
+                const currentTime = Date.now();
+                // 限制更新频率，避免过于频繁的计算
+                if (currentTime - lastUpdateTime < updateInterval) return;
+                lastUpdateTime = currentTime;
+                
+                const touch = e.touches[0];
+                const rect = gameContainer.getBoundingClientRect();
+                const currentTouchX = touch.clientX - rect.left;
+                const currentTouchY = touch.clientY - rect.top;
+                
+                // 计算手指移动的距离
+                const deltaX = currentTouchX - touchStartX;
+                const deltaY = currentTouchY - touchStartY;
+                
+                // 如果移动距离超过阈值，标记为连续移动
+                if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                    continuousMove = true;
+                }
+                
+                // 计算新的角色位置
+                let newX = playerStartX + deltaX;
+                let newY = playerStartY + deltaY;
+                
+                // 边界检查
+                newX = Math.max(0, Math.min(gameWidth - 40, newX));
+                newY = Math.max(0, Math.min(gameHeight - 50, newY));
+                
+                // 更新角色位置
+                gameState.player.x = newX;
+                gameState.player.y = newY;
+                updatePlayerPosition();
+                
+            }, { passive: false });
+            
+            gameContainer.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isTouching = false;
+                
+                // 如果是短距离点击（非拖拽），检查是否点击了钥匙
+                if (!continuousMove) {
+                    const touch = e.changedTouches[0];
+                    const rect = gameContainer.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    
+                    // 检查是否点击了钥匙
+                    gameState.keys.forEach(key => {
+                        const keyRect = key.getBoundingClientRect();
+                        const containerRect = gameContainer.getBoundingClientRect();
+                        const keyX = keyRect.left - containerRect.left;
+                        const keyY = keyRect.top - containerRect.top;
+                        
+                        if (x >= keyX && x <= keyX + keyRect.width &&
+                            y >= keyY && y <= keyY + keyRect.height) {
+                            collectKey(key);
+                        }
+                    });
+                }
+                
+                continuousMove = false;
+            }, { passive: false });
+            
+            // 虚拟按键控制（作为备选方案）
+            const dpadButtons = document.querySelectorAll('.dpad-btn');
+            
+            dpadButtons.forEach(btn => {
+                const key = btn.dataset.key;
+                
+                // 触摸开始
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (gameState.gameOver) return;
+                    keys[key] = true;
+                    playClickSound();
+                }, { passive: false });
+                
+                // 触摸结束
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                }, { passive: false });
+                
+                // 触摸取消（手指移出按钮区域）
+                btn.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                }, { passive: false });
+                
+                // 鼠标事件（用于桌面测试）
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    if (gameState.gameOver) return;
+                    keys[key] = true;
+                    playClickSound();
+                });
+                
+                btn.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    keys[key] = false;
+                });
+                
+                btn.addEventListener('mouseleave', (e) => {
+                    keys[key] = false;
+                });
+            });
+        }
+
+        // 事件监听
+        nextBtn.addEventListener('click', () => {
+            playClickSound();
+            nextLevel();
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            playClickSound();
+            startLevel();
+        });
+        
+        levelSelectBtn.addEventListener('click', () => {
+            playClickSound();
+            createLevelButtons();
+            levelSelectModal.classList.remove('hidden');
+        });
+        
+        soundToggleBtn.addEventListener('click', toggleSound);
+        
+        musicToggleBtn.addEventListener('click', () => {
+            playClickSound();
+            toggleMusic();
+        });
+        
+        // 排行榜按钮事件监听器
+        const leaderboardBtn = document.getElementById('leaderboard-btn');
+        leaderboardBtn.addEventListener('click', () => {
+            playClickSound();
+            showLeaderboard();
+        });
+        
+        closeSelectBtn.addEventListener('click', () => {
+            playClickSound();
+            levelSelectModal.classList.add('hidden');
+        });
+        
+        resetProgressBtn.addEventListener('click', () => {
+            playClickSound();
+            if (confirm('确定要重置所有进度吗？这将删除您的所有游戏记录并刷新页面！')) {
+                resetProgress();
+                // 清空所有缓存并强制刷新页面
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) {
+                            caches.delete(name);
+                        }
+                    });
+                }
+                // 强制刷新页面，清空所有状态
+                window.location.reload(true);
+            }
+        });
+
+        // 页面加载时立即隐藏关卡选择器
+        levelSelectModal.classList.add('hidden');
+        
+        // 处理首次用户交互（用于启动背景音乐）
+        let firstInteraction = true;
+        function handleFirstInteraction() {
+            if (firstInteraction && musicEnabled && backgroundMusic) {
+                playBackgroundMusic();
+                firstInteraction = false;
+            }
+        }
+
+        // 监听各种用户交互事件
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+        document.addEventListener('touchstart', handleFirstInteraction);
+        
+        // 窗口大小变化监听
+        window.addEventListener('resize', () => {
+            updateGameDimensions();
+        });
+        
+        // 智能防滚动措施 - 只阻止游戏相关的按键滚动
+        function preventGameKeyScroll() {
+            // 只阻止游戏控制键导致的页面滚动
+            const gameKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+            
+            document.addEventListener('keydown', (e) => {
+                // 只有当按下游戏控制键时才阻止默认行为
+                if (gameKeys.includes(e.key) && !gameState.gameOver) {
+                    e.preventDefault();
+                    return false;
+                }
+            }, { passive: false });
+            
+            // 阻止双指缩放等手势（保持游戏体验）
+            document.addEventListener('gesturestart', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('gesturechange', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('gestureend', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+        }
+        
+        // 初始化智能防滚动功能
+        preventGameKeyScroll();
+        
+        // 初始化移动端控制
+        initMobileControls();
+        
+        // 显示移动端操作提示
+        function showTouchHint() {
+            const touchHint = document.getElementById('touch-hint');
+            const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+            
+            if (isMobile && touchHint) {
+                touchHint.classList.add('show');
+                setTimeout(() => {
+                    touchHint.classList.remove('show');
+                }, 4000); // 4秒后自动隐藏
+            }
+        }
+        
+        // 在移动设备上显示操作提示
+        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+            setTimeout(showTouchHint, 1000); // 1秒后显示提示
+        }
+        
+        // 开始游戏
+        initGame();
+        gameLoop();
+    </script>
+</body>
+</html>

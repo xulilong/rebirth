@@ -1,7 +1,7 @@
 {
-  "totalPlayers": 12,
-  "totalGames": 3,
-  "totalLevelsCompleted": 51,
+  "totalPlayers": 21,
+  "totalGames": 4,
+  "totalLevelsCompleted": 52,
   "totalKeysCollected": 67,
   "totalCEOPromotions": 3,
   "dailyStats": {
@@ -14,7 +14,7 @@
     }
   },
   "levelStats": {
-    "1": 6,
+    "1": 7,
     "2": 5,
     "3": 5,
     "4": 5,
@@ -50,5 +50,5 @@
     "10": 0
   },
   "sessions": [],
-  "lastUpdated": "2025-06-17T02:15:58.250Z"
+  "lastUpdated": "2025-06-17T07:16:26.641Z"
 }
